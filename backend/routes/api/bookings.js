@@ -324,3 +324,36 @@ router.get("/spots/:spotId/bookings", requireAuth, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// gat all of the current user's bookings
+router.get("/current", requireAuth, async (req, res) => {
+  const currentUserId = req.user.id;
+  try {
+    const bookings = await Booking.findAll({
+      where: { userId: currentUserId },
+      include: {
+        model: Spot, // Include the Spot model to get spot details
+        attributes: [
+          "id",
+          "ownerId",
+          "address",
+          "city",
+          "state",
+          "country",
+          "lat",
+          "lng",
+          "name",
+          "price",
+          "previewImage",
+        ],
+      },
+    });
+    return res.status(200).json({ Bookings: bookings });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+})
+
+
+module.exports = router;
