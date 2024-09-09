@@ -1,5 +1,5 @@
 const express = require("express");
-const { Spots } = require("../../db/models/spots");
+const { Spots, SpotImage } = require("../../db/models/spots");
 const router = express.Router();
 const { requireAuth } = require("../../utils/auth");
 
@@ -132,5 +132,43 @@ router.post("/:spotId/bookings", requireAuth, async (req, res) => {
   }
 });
 
+// delete a spot image
+router.delete("/:imageId", requireAuth, async (req, res) => {
+    // get the image id
+    const imageId = req.params.imageId
+    // get the user id
+    const userId = req.user.id
+    try {
+
+        // get the image
+
+        const image = await SpotImage.findByPk(imageId, {
+            include: [
+                {
+                    model: Spot,
+                    where: {
+                        ownerId: ['userId'],
+                    }
+                }
+            ]});
+        // if the image does not exist
+        if (!image) {
+            return res.status(404).json({ message: "Spot Image couldn't be found" });
+        }
+
+        // if the image belongs to the user
+        if (image.userId !== userId) {
+            return res.status(403).json({ message: "You do not have permission to delete this image" });
+        }
+
+        // delete the image
+        await image.destroy();
+        return res.status(200).json({ message: "Successfully deleted" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+})
 
 module.exports = router;
