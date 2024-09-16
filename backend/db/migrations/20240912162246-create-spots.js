@@ -8,16 +8,7 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-  // Check if the Users table exists
-  const usersTableExists = await queryInterface.sequelize.query(
-    `SELECT to_regclass('theme_scape."Users"')`
-  );
-
-  if (!usersTableExists[0][0].to_regclass) {
-    throw new Error('Users table does not exist. Run the create-users migration first.');
-  }
-
-    await queryInterface.createTable('Spots', {
+     await queryInterface.createTable('Spots', {
       id: {
         allowNull: false,
         autoIncrement: true,
