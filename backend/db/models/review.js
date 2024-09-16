@@ -1,18 +1,21 @@
 // 'use strict';
-// const { Model } = require('sequelize');
+// const {
+//   Model
+// } = require('sequelize');
 // module.exports = (sequelize, DataTypes) => {
-//   class Bookings extends Model {
+//   class Reviews extends Model {
 //     /**
 //      * Helper method for defining associations.
 //      * This method is not a part of Sequelize lifecycle.
 //      * The `models/index` file will call this method automatically.
 //      */
 //     static associate(models) {
-//       Bookings.belongsTo(models.Users, { foreignKey: "userId" , onDelete: 'CASCADE' });
-//       Bookings.belongsTo(models.Spots, { foreignKey: "spotId" , onDelete: 'CASCADE' });
+//       Reviews.belongsTo(models.Users, { foreignKey: "userId" });
+//       Reviews.belongsTo(models.Spots, { foreignKey: "spotId" });
+//       Reviews.hasMany(models.ReviewImages, { foreignKey: "reviewId" });
 //     }
 //   }
-//   Bookings.init({
+//   Reviews.init({
 //     spotId: {
 //       type: DataTypes.INTEGER,
 //       allowNull: false,
@@ -31,55 +34,58 @@
 //       },
 //       onDelete: 'CASCADE'
 //     },
-//     startDate: {
-//       type: DataTypes.DATE,
+//     review: {
+//       type: DataTypes.STRING,
 //       allowNull: false
 //     },
-//     endDate: {
-//       type: DataTypes.DATE,
+//     stars: {
+//       type: DataTypes.FLOAT,
 //       allowNull: false
-//     }
+//     },
 //   }, {
 //     sequelize,
-//     modelName: 'Bookings',
+//     modelName: 'Reviews',
 //   });
-//   return Bookings;
+//   return Reviews;
 // };
+
 'use strict';
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Bookings extends Model {
+  class Review extends Model {
     static associate(models) {
-      // Booking belongs to a user and a spot
-      Bookings.belongsTo(models.Users, { foreignKey: 'userId', onDelete: 'CASCADE' });
-      Bookings.belongsTo(models.Spots, { foreignKey: 'spotId', onDelete: 'CASCADE' });
+      // Review belongs to a user and a spot
+      Review.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+      Review.belongsTo(models.Spot, { foreignKey: 'spotId', onDelete: 'CASCADE' });
+      // Review can have many images
+      Review.hasMany(models.ReviewImage, { foreignKey: 'reviewId', onDelete: 'CASCADE' });
     }
   }
 
-  Bookings.init({
+  Review.init({
     spotId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references:{
-        model: "Spots", key: "id",
-        tableName: "Spots"
+        model: "Spots",
+        key: "id"
       }
     },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references:{
-        model: "Users", key: "id",
-        tableName: "Users"
+        model: "Users",
+        key: "id"
       }
     },
-    startDate: {
-      type: DataTypes.DATE,
+    review: {
+      type: DataTypes.STRING,
       allowNull: false
     },
-    endDate: {
-      type: DataTypes.DATE,
+    stars: {
+      type: DataTypes.FLOAT,
       allowNull: false
     },
     createdAt: {
@@ -94,9 +100,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'Bookings',
-    tableName: 'Bookings'
+    modelName: 'Review'
   });
 
-  return Bookings;
+  return Review;
 };

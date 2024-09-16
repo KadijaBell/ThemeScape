@@ -38,20 +38,20 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class ReviewImages extends Model {
+  class ReviewImage extends Model {
     static associate(models) {
       // ReviewImage belongs to a review
-      ReviewImages.belongsTo(models.Reviews, { foreignKey: 'reviewId', onDelete: 'CASCADE' });
+      ReviewImage.belongsTo(models.Review, { foreignKey: 'reviewId', onDelete: 'CASCADE' });
     }
   }
 
-  ReviewImages.init({
+  ReviewImage.init({
     reviewId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references:{
-        model: "Reviews", key: "id",
-        tableName : "Reviews"
+        model: "Reviews",
+        key: "id"
       }
     },
     url: {
@@ -70,9 +70,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'ReviewImages',
-    tableName: 'ReviewImages'
+    modelName: 'ReviewImage'
   });
 
-  return ReviewImages;
+  return ReviewImage;
 };

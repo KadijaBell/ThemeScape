@@ -40,20 +40,20 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class SpotImages extends Model {
+  class SpotImage extends Model {
     static associate(models) {
       // SpotImage belongs to a spot
-      SpotImages.belongsTo(models.Spots, { foreignKey: 'spotId', onDelete: 'CASCADE' });
+      SpotImage.belongsTo(models.Spot, { foreignKey: 'spotId', onDelete: 'CASCADE' });
     }
   }
 
-  SpotImages.init({
+  SpotImage.init({
     spotId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references:{
-        model: "Spots", key: "id",
-        tableName : "Spots"
+        model: "Spots",
+        key: "id"
       }
     },
     url: {
@@ -77,9 +77,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'SpotImages',
-    tableName: 'SpotImages'
+    modelName: 'SpotImage'
   });
 
-  return SpotImages;
+  return SpotImage;
 };

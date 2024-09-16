@@ -78,24 +78,25 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Spots extends Model {
+  class Spot extends Model {
     static associate(models) {
       // Spot belongs to a user (owner)
-      Spots.belongsTo(models.Users, { foreignKey: 'ownerId',  onDelete: 'CASCADE' });
+      Spot.belongsTo(models.User, { foreignKey: 'ownerId',  onDelete: 'CASCADE' });
       // Spot can have many reviews, bookings, and spot images
-      Spots.hasMany(models.Reviews, { foreignKey: 'spotId', onDelete: 'CASCADE' });
-      Spots.hasMany(models.Bookings, { foreignKey: 'spotId', onDelete: 'CASCADE' });
-      Spots.hasMany(models.SpotImages, { foreignKey: 'spotId', onDelete: 'CASCADE' });
+      Spot.hasMany(models.Review, { foreignKey: 'spotId', onDelete: 'CASCADE' });
+      Spot.hasMany(models.Booking, { foreignKey: 'spotId', onDelete: 'CASCADE' });
+      Spot.hasMany(models.SpotImage, { foreignKey: 'spotId', onDelete: 'CASCADE' });
     }
   }
 
-  Spots.init({
+  Spot.init({
     ownerId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references:{
-        model: "Users", key: "id" , as: "Owner",
-        tableName: "Users"
+        model: "Users",
+        key: "id" ,
+        as: "Owner"
       }
     },
     address: {
@@ -146,9 +147,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'Spots',
-    tableName: 'Spots'
+    modelName: 'Spot'
   });
 
-  return Spots;
+  return Spot;
 };

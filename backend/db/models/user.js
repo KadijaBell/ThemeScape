@@ -72,12 +72,12 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Users extends Model {
+  class User extends Model {
     static associate(models) {
       // A user can have many spots, reviews, bookings
-      Users.hasMany(models.Spots, { foreignKey: 'ownerId', onDelete: 'CASCADE' });
-      Users.hasMany(models.Reviews, { foreignKey: 'userId', onDelete: 'CASCADE' });
-      Users.hasMany(models.Bookings, { foreignKey: 'userId', onDelete: 'CASCADE' });
+      User.hasMany(models.Spots, { foreignKey: 'ownerId', onDelete: 'CASCADE' });
+      User.hasMany(models.Reviews, { foreignKey: 'userId', onDelete: 'CASCADE' });
+      User.hasMany(models.Bookings, { foreignKey: 'userId', onDelete: 'CASCADE' });
     }
   }
 
@@ -134,9 +134,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'Users',
-    tableName: 'Users'
+    modelName: 'Users'
   });
 
-  return Users;
+  return User;
 };
