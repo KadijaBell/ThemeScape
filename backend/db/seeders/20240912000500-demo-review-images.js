@@ -43,44 +43,44 @@
 //   }
 
 // };
-'use strict';
-let options = {};
-if (process.env.NODE_ENV === "production") {
-  options.schema = process.env.SCHEMA; // define your schema in options object
-}
+// 'use strict';
+// let options = {};
+// if (process.env.NODE_ENV === "production") {
+//   options.schema = process.env.SCHEMA; // define your schema in options object
+// }
 
-module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    const reviewImages = [
-      {
-        reviewId: 1,
-        url: "https://placehold.co/600x400/00ff00/png",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        reviewId: 2,
-        url: "https://placehold.co/600x400/ff0000/png",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        reviewId: 3,
-        url: "https://placehold.co/600x400/0000ff/png",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
+// module.exports = {
+//   up: async (queryInterface, Sequelize) => {
+//     const reviewImages = [
+//       {
+//         reviewId: 1,
+//         url: "https://placehold.co/600x400/00ff00/png",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//       {
+//         reviewId: 2,
+//         url: "https://placehold.co/600x400/ff0000/png",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//       {
+//         reviewId: 3,
+//         url: "https://placehold.co/600x400/0000ff/png",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//     ];
 
-    try {
-      await queryInterface.bulkInsert('ReviewImages', reviewImages, {});
-      console.log('Review Images seeded successfully');
-    } catch (error) {
-      console.error('Error seeding Review Images:', error);
-    }
-  },
+//     try {
+//       await queryInterface.bulkInsert('ReviewImages', reviewImages, {});
+//       console.log('Review Images seeded successfully');
+//     } catch (error) {
+//       console.error('Error seeding Review Images:', error);
+//     }
+//   },
 
-  down: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkDelete('ReviewImages', null, {});
-  },
-};
+//   down: async (queryInterface, Sequelize) => {
+//     await queryInterface.bulkDelete('ReviewImages', null, {});
+//   },
+// };

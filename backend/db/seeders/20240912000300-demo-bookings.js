@@ -55,50 +55,50 @@
 
 
 // };
-'use strict';
-let options = {};
-if (process.env.NODE_ENV === "production") {
-  options.schema = process.env.SCHEMA; // define your schema in options object
-}
+// 'use strict';
+// let options = {};
+// if (process.env.NODE_ENV === "production") {
+//   options.schema = process.env.SCHEMA; // define your schema in options object
+// }
 
-module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    const bookings = [
-      {
-        userId: 1,
-        spotId: 1,
-        startDate: new Date("2024-12-01"),
-        endDate: new Date("2024-12-05"),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        userId: 2,
-        spotId: 2,
-        startDate: new Date("2024-11-15"),
-        endDate: new Date("2024-11-20"),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        userId: 3,
-        spotId: 3,
-        startDate: new Date("2024-10-10"),
-        endDate: new Date("2024-10-15"),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
+// module.exports = {
+//   up: async (queryInterface, Sequelize) => {
+//     const bookings = [
+//       {
+//         userId: 1,
+//         spotId: 1,
+//         startDate: new Date("2024-12-01"),
+//         endDate: new Date("2024-12-05"),
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//       {
+//         userId: 2,
+//         spotId: 2,
+//         startDate: new Date("2024-11-15"),
+//         endDate: new Date("2024-11-20"),
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//       {
+//         userId: 3,
+//         spotId: 3,
+//         startDate: new Date("2024-10-10"),
+//         endDate: new Date("2024-10-15"),
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//     ];
 
-    try {
-      await queryInterface.bulkInsert('Bookings', bookings, {});
-      console.log('Bookings seeded successfully');
-    } catch (error) {
-      console.error('Error seeding Bookings:', error);
-    }
-  },
+//     try {
+//       await queryInterface.bulkInsert('Bookings', bookings, {});
+//       console.log('Bookings seeded successfully');
+//     } catch (error) {
+//       console.error('Error seeding Bookings:', error);
+//     }
+//   },
 
-  down: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkDelete('Bookings', null, {});
-  },
-};
+//   down: async (queryInterface, Sequelize) => {
+//     await queryInterface.bulkDelete('Bookings', null, {});
+//   },
+// };
