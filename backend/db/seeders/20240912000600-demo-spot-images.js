@@ -1,6 +1,6 @@
 'use strict';
 
-const { SpotImages } = require('../models');
+const { SpotImage } = require('../models');
 const { Op } = require('sequelize');
 
 

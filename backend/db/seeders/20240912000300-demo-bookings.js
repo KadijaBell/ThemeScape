@@ -1,7 +1,7 @@
 'use strict';
 
 const { Op } = require('sequelize');
-const { Bookings } = require('../models')
+const { Booking } = require('../models')
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {

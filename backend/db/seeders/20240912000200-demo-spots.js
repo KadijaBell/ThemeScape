@@ -1,6 +1,6 @@
 'use strict';
 const { Op } = require('sequelize');
-const { Spots, Users } = require('../models');
+const { Spot, User } = require('../models');
 let options = {};
 if (process.env.NODE_ENV === 'production') {
   options.schema = process.env.SCHEMA;  // define your schema in options object
