@@ -1,79 +1,79 @@
-// 'use strict';
+'use strict';
 
-// const { SpotImages } = require('../models');
-// const { Op } = require('sequelize');
-
-
-// let options = {};
-// if (process.env.NODE_ENV === 'production') {
-//   options.schema = process.env.SCHEMA;  // define your schema in options object
-// }
-// /** @type {import('sequelize-cli').Migration} */
-
-// module.exports = {
-//   async up (queryInterface, Sequelize) {
-
-//    const spotImageSeed = [
-//      {
-//        spotId: 1,
-//        url: "https://placehold.co/600x400/png",
-//        preview: true,
-//        createdAt: new Date(),
-//        updatedAt: new Date(),
-
-//      },
-//      {
-//        spotId: 2,
-//        url: "https://placehold.co/600x400/png",
-//        preview: true,
-//        createdAt: new Date(),
-//        updatedAt: new Date(),
-
-//      },
-//      {
-//        spotId: 3,
-//        url: "https://placehold.co/600x400/png",
-//        preview:false,
-//        createdAt: new Date(),
-//        updatedAt: new Date(),
+const { SpotImages } = require('../models');
+const { Op } = require('sequelize');
 
 
-//      },
-//      {
-//        spotId: 4,
-//        url: "https://placehold.co/600x400/png",
-//        preview: true,
-//        createdAt: new Date(),
-//        updatedAt: new Date(),
+let options = {};
+if (process.env.NODE_ENV === 'production') {
+  options.schema = process.env.SCHEMA;  // define your schema in options object
+}
+/** @type {import('sequelize-cli').Migration} */
 
-//      },
-//      {
-//        spotId: 5,
-//        url: "https://placehold.co/600x400/png",
-//        preview: false,
-//        createdAt: new Date(),
-//        updatedAt: new Date(),
+module.exports = {
+  async up (queryInterface, Sequelize) {
+
+   const spotImageSeed = [
+     {
+       spotId: 1,
+       url: "https://placehold.co/600x400/png",
+       preview: true,
+       createdAt: new Date(),
+       updatedAt: new Date(),
+
+     },
+     {
+       spotId: 2,
+       url: "https://placehold.co/600x400/png",
+       preview: true,
+       createdAt: new Date(),
+       updatedAt: new Date(),
+
+     },
+     {
+       spotId: 3,
+       url: "https://placehold.co/600x400/png",
+       preview:false,
+       createdAt: new Date(),
+       updatedAt: new Date(),
 
 
-//      },
-//    ];
+     },
+     {
+       spotId: 4,
+       url: "https://placehold.co/600x400/png",
+       preview: true,
+       createdAt: new Date(),
+       updatedAt: new Date(),
 
-//     try {
-//       await SpotImages.bulkCreate(spotImageSeed, {validate : true});
-//     } catch (error) {
-//       console.error(error)
-//     }
+     },
+     {
+       spotId: 5,
+       url: "https://placehold.co/600x400/png",
+       preview: false,
+       createdAt: new Date(),
+       updatedAt: new Date(),
 
-//   },
 
-//   async down(queryInterface, Sequelize) {
-//     options.tableName = 'SpotImages';
-//     return queryInterface.bulkDelete(options, {
-//       url: { [Op.in]: ['https://placehold.co/600x400/png'] }
-//     }, {});
-//   }
+     },
+   ];
 
-// };
+    try {
+      await SpotImages.bulkCreate(spotImageSeed, {validate : true});
+    } catch (error) {
+      console.error(error)
+    }
+
+  },
+
+  async down(queryInterface, Sequelize) {
+    options.tableName = 'SpotImages';
+    return queryInterface.bulkDelete(options, {
+      url: { [Op.in]: ['https://placehold.co/600x400/png'] }
+    }, {});
+  }
+
+};
 // 'use strict';
 
 // let options = {};

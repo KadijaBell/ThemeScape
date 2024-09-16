@@ -1,52 +1,53 @@
-// 'use strict';
+'use strict';
 
-// const { Users } = require('../models');
-// const bcrypt = require('bcryptjs');
-// const { Op } = require('sequelize');
+const { Users } = require('../models');
+const bcrypt = require("bcryptjs");
 
-// let options = {};
-// if (process.env.NODE_ENV === 'production') {
-//   options.schema = process.env.SCHEMA;  // define your schema in options object
-// }
+let options = {};
+if (process.env.NODE_ENV === 'production') {
+  options.schema = process.env.SCHEMA;  // define your schema in options object
+}
 
-// /** @type {import('sequelize-cli').Migration} */
-// module.exports = {
-//   async up (queryInterface, Sequelize) {
-//    const userSeed = [
-//      {
-//        firstName: "Demo",
-//        lastName: "lition",
-//        email: "demo@user.io",
-//        username: "Demo-lition",
-//        hashedPassword: bcrypt.hashSync("password"),
-//      },
-//      {
-//        firstName: "Fake",
-//        lastName: "Users",
-//        email: "user1@user.io",
-//        username: "FakeUser1",
-//        hashedPassword: bcrypt.hashSync("password2"),
-//      },
-//      {
-//       firstName: "Faker",
-//       lastName: "User",
-//       email: "user2@user.io",
-//       username: "FakeUser2",
-//       hashedPassword: bcrypt.hashSync("password3"),
-//      },
-//    ];
-//    try {
-//     await queryInterface.bulkInsert('Users', userSeed, {});
-//     console.log('Users seeded successfully');
-//   } catch (error) {
-//     console.error('Error seeding Users:', error);
-//   }
-// },
+module.exports = {
+  async up (queryInterface, Sequelize) {
+    await Users.bulkCreate([
+      {
+        id:1,
+        firstName: 'Demo',
+        lastName: 'Lition',
+        email: 'demo@user.io',
+        username: 'Demo-lition',
+        hashedPassword: bcrypt.hashSync('password')
+      },
+      {
+        id:2,
+        firstName: 'Fake',
+        lastName: 'User',
+        email: 'user1@user.io',
+        username: 'FakeUser1',
+        hashedPassword: bcrypt.hashSync('password2')
+      },
+      {
+        id:3,
+        firstName: 'Fake',
+        lastName: 'User',
+        email: 'user2@user.io',
+        username: 'FakeUser2',
+        hashedPassword: bcrypt.hashSync('password3')
+      }
+    ], { validate: true });
+  },
 
-// down: async (queryInterface, Sequelize) => {
-//   await queryInterface.bulkDelete('Users', null, {});
-// },
-// };
+  async down (queryInterface, Sequelize) {
+    options.tableName = 'Users';
+    const Op = Sequelize.Op;
+    return queryInterface.bulkDelete(options, {
+      username: { [Op.in]: ['Demo-lition', 'FakeUser1', 'FakeUser2'] }
+    }, {});
+  }
+};
+
+
 // 'use strict';
 // const bcrypt = require('bcryptjs');
 // let options = {};

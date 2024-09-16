@@ -1,48 +1,48 @@
-// 'use strict';
+'use strict';
 
 
-// const { ReviewImages } = require('../models');
-// const { Op } = require('sequelize');
+const { ReviewImages } = require('../models');
+const { Op } = require('sequelize');
 
-// let options = {};
-// if (process.env.NODE_ENV === 'production') {
-//   options.schema = process.env.SCHEMA;  // define your schema in options object
-// }
-// /** @type {import('sequelize-cli').Migration} */
-// module.exports = {
-//   async up (queryInterface, Sequelize) {
+let options = {};
+if (process.env.NODE_ENV === 'production') {
+  options.schema = process.env.SCHEMA;  // define your schema in options object
+}
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up (queryInterface, Sequelize) {
 
-//     const reviewImageSeed = [
-//       {
-//         reviewId: 1,
-//         url: "https://placehold.co/600x400/png",
-//       },
-//       {
-//         reviewId: 2,
-//         url: "https://placehold.co/600x400/png",
-//       },
-//       {
+    const reviewImageSeed = [
+      {
+        reviewId: 1,
+        url: "https://placehold.co/600x400/png",
+      },
+      {
+        reviewId: 2,
+        url: "https://placehold.co/600x400/png",
+      },
+      {
 
-//         reviewId: 3,
-//         url: "https://placehold.co/600x400/png",
-//       },
-//     ];
-// try {
-//   await ReviewImages.bulkCreate(reviewImageSeed, {validate : true});
-// } catch (error) {
-//   console.error(error)
-// }
+        reviewId: 3,
+        url: "https://placehold.co/600x400/png",
+      },
+    ];
+try {
+  await ReviewImages.bulkCreate(reviewImageSeed, {validate : true});
+} catch (error) {
+  console.error(error)
+}
 
-//   },
+  },
 
-//   async down(queryInterface, Sequelize) {
-//     options.tableName = 'ReviewImages';
-//     return queryInterface.bulkDelete(options, {
-//       url: { [Op.in]: ['https://placehold.co/600x400/png'] }
-//     }, {});
-//   }
+  async down(queryInterface, Sequelize) {
+    options.tableName = 'ReviewImages';
+    return queryInterface.bulkDelete(options, {
+      url: { [Op.in]: ['https://placehold.co/600x400/png'] }
+    }, {});
+  }
 
-// };
+};
 // 'use strict';
 // let options = {};
 // if (process.env.NODE_ENV === "production") {
