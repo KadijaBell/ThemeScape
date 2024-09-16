@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    options.tableName = 'Users';
+    options.tableName = 'User';
     await queryInterface.bulkInsert([
       {
         id:1,
@@ -46,7 +46,7 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    options.tableName = 'Users';
+    options.tableName = 'User';
     const Op = Sequelize.Op;
     return queryInterface.bulkDelete(options,
       {
@@ -96,14 +96,14 @@ module.exports = {
 //     ];
 
 //     try {
-//       await queryInterface.bulkInsert('Users', users, {});
-//       console.log('Users seeded successfully');
+//       await queryInterface.bulkInsert('User', users, {});
+//       console.log('User seeded successfully');
 //     } catch (error) {
-//       console.error('Error seeding Users:', error);
+//       console.error('Error seeding User:', error);
 //     }
 //   },
 
 //   down: async (queryInterface, Sequelize) => {
-//     await queryInterface.bulkDelete('Users', null, {});
+//     await queryInterface.bulkDelete('User', null, {});
 //   },
 // };

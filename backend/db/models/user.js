@@ -2,20 +2,20 @@
 // const { Model, Validator } = require('sequelize');
 
 // module.exports = (sequelize, DataTypes) => {
-//   class Users extends Model {
+//   class User extends Model {
 //     /**
 //      * Helper method for defining associations.
 //      * This method is not a part of Sequelize lifecycle.
 //      * The `models/index` file will call this method automatically.
 //      */
 //     static associate(models) {
-//       Users.hasMany(models.Spots, { foreignKey: "ownerId" , as: "Spots", onDelete: 'CASCADE' });
-//       Users.hasMany(models.Bookings, { foreignKey: "userId" });
-//       Users.hasMany(models.Reviews, { foreignKey: "userId" });
+//       User.hasMany(models.Spot, { foreignKey: "ownerId" , as: "Spot", onDelete: 'CASCADE' });
+//       User.hasMany(models.Booking, { foreignKey: "userId" });
+//       User.hasMany(models.Review, { foreignKey: "userId" });
 
 //     }
 //   }
-//   Users.init(
+//   User.init(
 //     {
 //       firstName: {
 //         type: DataTypes.STRING(255) ,
@@ -57,7 +57,7 @@
 //     },
 //     {
 //       sequelize,
-//       modelName: 'Users',
+//       modelName: 'User',
 //       defaultScope: {
 //         attributes: {
 //           exclude: ['hashedPassword', 'email', 'createdAt', 'updatedAt'],
@@ -65,7 +65,7 @@
 //       },
 //     }
 //   );
-//   return Users;
+//   return User;
 // };
 
 'use strict';
@@ -122,7 +122,7 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: { msg: 'Password cannot be empty' }
       }
     },
-    
+
   }, {
     sequelize,
     modelName: 'User'

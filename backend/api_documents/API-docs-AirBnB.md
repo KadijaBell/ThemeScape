@@ -226,7 +226,7 @@ user's information.
 
 ## SPOTS
 
-### Get all Spots
+### Get all Spot
 
 Returns all the spots.
 
@@ -244,7 +244,7 @@ Returns all the spots.
 
     ```json
     {
-      "Spots": [
+      "Spot": [
         {
           "id": 1,
           "ownerId": 1,
@@ -266,7 +266,7 @@ Returns all the spots.
     }
     ```
 
-### Get all Spots owned by the Current User
+### Get all Spot owned by the Current User
 
 Returns all the spots owned (created) by the current user.
 
@@ -284,7 +284,7 @@ Returns all the spots owned (created) by the current user.
 
     ```json
     {
-      "Spots": [
+      "Spot": [
         {
           "id": 1,
           "ownerId": 1,
@@ -339,7 +339,7 @@ Returns the details of a spot specified by its id.
       "updatedAt": "2021-11-19 20:39:36" ,
       "numReviews": 5,
       "avgStarRating": 4.5,
-      "SpotImages": [
+      "SpotImage": [
         {
           "id": 1,
           "url": "image url",
@@ -613,7 +613,7 @@ Deletes an existing spot.
 
 ## REVIEWS
 
-### Get all Reviews of the Current User
+### Get all Review of the Current User
 
 Returns all the reviews written by the current user.
 
@@ -631,7 +631,7 @@ Returns all the reviews written by the current user.
 
     ```json
     {
-      "Reviews": [
+      "Review": [
         {
           "id": 1,
           "userId": 1,
@@ -658,7 +658,7 @@ Returns all the reviews written by the current user.
             "price": 123,
             "previewImage": "image url"
           },
-          "ReviewImages": [
+          "ReviewImage": [
             {
               "id": 1,
               "url": "image url"
@@ -669,7 +669,7 @@ Returns all the reviews written by the current user.
     }
     ```
 
-### Get all Reviews by a Spot's id
+### Get all Review by a Spot's id
 
 Returns all the reviews that belong to a spot specified by id.
 
@@ -687,7 +687,7 @@ Returns all the reviews that belong to a spot specified by id.
 
     ```json
     {
-      "Reviews": [
+      "Review": [
         {
           "id": 1,
           "userId": 1,
@@ -701,7 +701,7 @@ Returns all the reviews that belong to a spot specified by id.
             "firstName": "John",
             "lastName": "Smith"
           },
-          "ReviewImages": [
+          "ReviewImage": [
             {
               "id": 1,
               "url": "image url"
@@ -961,7 +961,7 @@ Delete an existing review.
 
 ## BOOKINGS
 
-### Get all of the Current User's Bookings
+### Get all of the Current User's Booking
 
 Return all the bookings that the current user has made.
 
@@ -979,7 +979,7 @@ Return all the bookings that the current user has made.
 
     ```json
     {
-      "Bookings": [
+      "Booking": [
         {
           "id": 1,
           "spotId": 1,
@@ -1006,7 +1006,7 @@ Return all the bookings that the current user has made.
     }
     ```
 
-### Get all Bookings for a Spot based on the Spot's id
+### Get all Booking for a Spot based on the Spot's id
 
 Return all the bookings for a spot specified by id.
 
@@ -1024,7 +1024,7 @@ Return all the bookings for a spot specified by id.
 
     ```json
     {
-      "Bookings": [
+      "Booking": [
         {
           "spotId": 1,
           "startDate": "2021-11-19",
@@ -1042,7 +1042,7 @@ Return all the bookings for a spot specified by id.
 
     ```json
     {
-      "Bookings": [
+      "Booking": [
         {
           "User": {
             "id": 2,
@@ -1285,7 +1285,7 @@ Delete an existing booking.
     }
     ```
 
-* Error response: Bookings that have been started can't be deleted
+* Error response: Booking that have been started can't be deleted
   * Status Code: 403
   * Headers:
     * Content-Type: application/json
@@ -1293,7 +1293,7 @@ Delete an existing booking.
 
     ```json
     {
-      "message": "Bookings that have been started can't be deleted"
+      "message": "Booking that have been started can't be deleted"
     }
     ```
 
@@ -1369,7 +1369,7 @@ Delete an existing image for a Review.
     }
     ```
 
-## Add Query Filters to Get All Spots
+## Add Query Filters to Get All Spot
 
 Return spots filtered by query parameters.
 
@@ -1396,7 +1396,7 @@ Return spots filtered by query parameters.
 
     ```json
     {
-      "Spots": [
+      "Spot": [
         {
           "id": 1,
           "ownerId": 1,

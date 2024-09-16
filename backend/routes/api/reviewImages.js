@@ -1,5 +1,5 @@
 const express = require("express");
-const { ReviewImages, Reviews } = require("../../db/models");
+const { ReviewImage, Review } = require("../../db/models");
 const router = express.Router();
 const { requireAuth } = require("../../utils/auth");
 
@@ -13,7 +13,7 @@ router.delete("/:imageId", requireAuth, async (req, res) => {
     try {
 
         // get the image
-        const image = await ReviewImages.findByPk(imageId);
+        const image = await ReviewImage.findByPk(imageId);
         // if the image does not exist
         if (!image) {
             return res.status(404).json({ message: "Review Image couldn't be found" });
@@ -52,7 +52,7 @@ router.post('/:id/images', requireAuth, async (req, res) => {
 
   try {
     // Check if the review exists
-    const review = await Reviews.findByPk(reviewId);
+    const review = await Review.findByPk(reviewId);
     if (!review) {
       return res.status(404).json({
         message: 'Review not found',
@@ -69,7 +69,7 @@ router.post('/:id/images', requireAuth, async (req, res) => {
     }
 
     // Check if the maximum number of images for this review has been reached
-    const reviewImagesCount = await ReviewImages.count({
+    const reviewImagesCount = await ReviewImage.count({
       where: { reviewId },
     });
     if (reviewImagesCount >= MAX_REVIEW_IMAGES) {
@@ -80,7 +80,7 @@ router.post('/:id/images', requireAuth, async (req, res) => {
     }
 
     // Create the new image
-    const newImage = await ReviewImages.create({
+    const newImage = await ReviewImage.create({
       reviewId,
       url,
     });

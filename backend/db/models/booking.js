@@ -1,23 +1,23 @@
 // 'use strict';
 // const { Model } = require('sequelize');
 // module.exports = (sequelize, DataTypes) => {
-//   class Bookings extends Model {
+//   class Booking extends Model {
 //     /**
 //      * Helper method for defining associations.
 //      * This method is not a part of Sequelize lifecycle.
 //      * The `models/index` file will call this method automatically.
 //      */
 //     static associate(models) {
-//       Bookings.belongsTo(models.Users, { foreignKey: "userId" , onDelete: 'CASCADE' });
-//       Bookings.belongsTo(models.Spots, { foreignKey: "spotId" , onDelete: 'CASCADE' });
+//       Booking.belongsTo(models.User, { foreignKey: "userId" , onDelete: 'CASCADE' });
+//       Booking.belongsTo(models.Spot, { foreignKey: "spotId" , onDelete: 'CASCADE' });
 //     }
 //   }
-//   Bookings.init({
+//   Booking.init({
 //     spotId: {
 //       type: DataTypes.INTEGER,
 //       allowNull: false,
 //       references: {
-//         model: "Spots",
+//         model: "Spot",
 //         key: "id"
 //       },
 //       onDelete: 'CASCADE'
@@ -26,7 +26,7 @@
 //       type: DataTypes.INTEGER,
 //       allowNull: false,
 //       references: {
-//         model: "Users",
+//         model: "User",
 //         key: "id"
 //       },
 //       onDelete: 'CASCADE'
@@ -41,9 +41,9 @@
 //     }
 //   }, {
 //     sequelize,
-//     modelName: 'Bookings',
+//     modelName: 'Booking',
 //   });
-//   return Bookings;
+//   return Booking;
 // };
 'use strict';
 const { Model } = require('sequelize');

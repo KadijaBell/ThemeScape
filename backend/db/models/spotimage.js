@@ -1,22 +1,22 @@
 // 'use strict';
 // const { Model } = require('sequelize');
 // module.exports = (sequelize, DataTypes) => {
-//   class SpotImages extends Model {
+//   class SpotImage extends Model {
 //     /**
 //      * Helper method for defining associations.
 //      * This method is not a part of Sequelize lifecycle.
 //      * The `models/index` file will call this method automatically.
 //      */
 //     static associate(models) {
-//       SpotImages.belongsTo(models.Spots, { foreignKey: "spotId" });
+//       SpotImage.belongsTo(models.Spot, { foreignKey: "spotId" });
 //     }
 //   }
-//   SpotImages.init({
+//   SpotImage.init({
 //     spotId: {
 //       type: DataTypes.INTEGER,
 //       allowNull: false,
 //       references: {
-//         model: "Spots",
+//         model: "Spot",
 //         key: "id"
 //       },
 //       onDelete: 'CASCADE'
@@ -32,9 +32,9 @@
 //     }
 //   }, {
 //     sequelize,
-//     modelName: 'SpotImages',
+//     modelName: 'SpotImage',
 //   });
-//   return SpotImages;
+//   return SpotImage;
 // };
 'use strict';
 const { Model } = require('sequelize');

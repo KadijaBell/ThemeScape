@@ -3,24 +3,24 @@
 //   Model
 // } = require('sequelize');
 // module.exports = (sequelize, DataTypes) => {
-//   class Reviews extends Model {
+//   class Review extends Model {
 //     /**
 //      * Helper method for defining associations.
 //      * This method is not a part of Sequelize lifecycle.
 //      * The `models/index` file will call this method automatically.
 //      */
 //     static associate(models) {
-//       Reviews.belongsTo(models.Users, { foreignKey: "userId" });
-//       Reviews.belongsTo(models.Spots, { foreignKey: "spotId" });
-//       Reviews.hasMany(models.ReviewImages, { foreignKey: "reviewId" });
+//       Review.belongsTo(models.User, { foreignKey: "userId" });
+//       Review.belongsTo(models.Spot, { foreignKey: "spotId" });
+//       Review.hasMany(models.ReviewImage, { foreignKey: "reviewId" });
 //     }
 //   }
-//   Reviews.init({
+//   Review.init({
 //     spotId: {
 //       type: DataTypes.INTEGER,
 //       allowNull: false,
 //       references: {
-//         model: "Spots",
+//         model: "Spot",
 //         key: "id"
 //       },
 //       onDelete: 'CASCADE'
@@ -29,7 +29,7 @@
 //       type: DataTypes.INTEGER,
 //       allowNull: false,
 //       references: {
-//         model: "Users",
+//         model: "User",
 //         key: "id"
 //       },
 //       onDelete: 'CASCADE'
@@ -44,9 +44,9 @@
 //     },
 //   }, {
 //     sequelize,
-//     modelName: 'Reviews',
+//     modelName: 'Review',
 //   });
-//   return Reviews;
+//   return Review;
 // };
 
 'use strict';

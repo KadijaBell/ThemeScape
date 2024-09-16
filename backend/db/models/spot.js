@@ -1,25 +1,25 @@
 // 'use strict';
 // const { Model } = require('sequelize');
 // module.exports = (sequelize, DataTypes) => {
-//   class Spots extends Model {
+//   class Spot extends Model {
 //     /**
 //      * Helper method for defining associations.
 //      * This method is not a part of Sequelize lifecycle.
 //      * The `models/index` file will call this method automatically.
 //      */
 //     static associate(models) {
-//       Spots.belongsTo(models.Users, { foreignKey: "ownerId", as: "Owner", onDelete: 'CASCADE' });
-//       Spots.hasMany(models.Bookings, { foreignKey: "spotId" });
-//       Spots.hasMany(models.Reviews, { foreignKey: "spotId" });
-//       Spots.hasMany(models.SpotImages, { foreignKey: "spotId" });
+//       Spot.belongsTo(models.User, { foreignKey: "ownerId", as: "Owner", onDelete: 'CASCADE' });
+//       Spot.hasMany(models.Booking, { foreignKey: "spotId" });
+//       Spot.hasMany(models.Review, { foreignKey: "spotId" });
+//       Spot.hasMany(models.SpotImage, { foreignKey: "spotId" });
 //     }
 //   }
-//   Spots.init({
+//   Spot.init({
 //     ownerId: {
 //       type: DataTypes.INTEGER,
 //       allowNull: false,
 //       references: {
-//         model: "Users",
+//         model: "User",
 //         key: "id"
 //       },
 //       onDelete: 'CASCADE'
@@ -70,9 +70,9 @@
 
 //   }, {
 //     sequelize,
-//     modelName: 'Spots',
+//     modelName: 'Spot',
 //   });
-//   return Spots;
+//   return Spot;
 // };
 'use strict';
 const { Model } = require('sequelize');

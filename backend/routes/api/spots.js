@@ -1,30 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const { Spots, SpotImages, Users, Reviews, Bookings} = require("../../db/models");
+const { Spot, SpotImage, User, Review, Booking} = require("../../db/models");
 const { requireAuth } = require("../../utils/auth");
 const { check, validationResult } = require('express-validator');
 
 
-//GET Spots
+//GET Spot
 router.get('/', async (req, res) => {
   try {
-    const spots = await Spots.findAll();
-    res.json({ Spots: spots });
+    const spots = await Spot.findAll();
+    res.json({ Spot: spots });
   } catch (err) {
     console.error('Error retrieving spots:', err);
     res.status(500).json({ message: "Server error", errors: err.errors });
   }
 });
 
-//GET all Spots
+//GET all Spot
 router.get('/', async (req,res, err) => {
-  const spots = await Spots.findAll({
+  const spots = await Spot.findAll({
       include:[
       {
-          model: Reviews,
+          model: Review,
           attributes: ['stars']
       },{
-          model: SpotImages,
+          model: SpotImage,
           attributes: ['url', 'preview']
       }
   ]
@@ -41,7 +41,7 @@ router.get('/', async (req,res, err) => {
       // Calculate average rating
       let totalStars = 0;
       let reviewCount = 0;
-      spot.Reviews.forEach((review) => {
+      spot.Review.forEach((review) => {
           totalStars += review.stars;
           reviewCount++;
       });
@@ -51,10 +51,10 @@ router.get('/', async (req,res, err) => {
       } else {
           spot.avgRating = null;
       }
-      delete spot.Reviews; // Remove Reviews after processing avgRating
+      delete spot.Review; // Remove Review after processing avgRating
 
       // Calculate preview image
-      spot.SpotImages.forEach((image) => {
+      spot.SpotImage.forEach((image) => {
           if (image.preview === true) {
               spot.previewImage = image.url;
           }
@@ -62,11 +62,11 @@ router.get('/', async (req,res, err) => {
       if (!spot.previewImage) {
           spot.previewImage = 'No preview image available';
       }
-      delete spot.SpotImages; // Remove SpotImages after processing previewImage
+      delete spot.SpotImage; // Remove SpotImage after processing previewImage
 
       return spot;
   })
-  res.json({ Spots: formattedSpots });
+  res.json({ Spot: formattedSpots });
 });
 
 //Create a spot
@@ -74,7 +74,7 @@ router.post('/', requireAuth, async (req, res) => {
   const { address, city, state, country, lat, lng, name, description, price } = req.body;
 
   try {
-    const newSpot = await Spots.create({
+    const newSpot = await Spot.create({
       ownerId: req.user.id,
       address,
       city,
@@ -139,7 +139,7 @@ router.get( '/',
         if (maxPrice) filters.price = { ...filters.price, [Op.lte]: parseFloat(maxPrice) };
 
         // Fetch spots from the database with applied filters
-        const spots = await Spots.findAll({
+        const spots = await Spot.findAll({
             where: filters,
             limit: size,
             offset: (page - 1) * size,
@@ -148,7 +148,7 @@ router.get( '/',
 
         // Return spots data along with pagination info
         return res.json({
-            Spots: spots,
+            Spot: spots,
             page,
             size,
         });
@@ -163,10 +163,10 @@ router.get( '/',
 // Get all spots owned by the current user
 router.get('/current', requireAuth, async (req, res) => {
   try {
-    const spots = await Spots.findAll({
+    const spots = await Spot.findAll({
       where: { ownerId: req.user.id }
     });
-    return res.status(200).json({ Spots: spots });
+    return res.status(200).json({ Spot: spots });
   } catch (error) {
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -177,10 +177,10 @@ router.get('/:spotId', async (req, res) => {
   const { spotId } = req.params;
 
   try {
-    const spot = await Spots.findByPk(spotId, {
+    const spot = await Spot.findByPk(spotId, {
       include: [
-        { model: SpotImages, attributes: ['id', 'url', 'preview'] },
-        { model: Users, as: 'Owner', attributes: ['id', 'firstName', 'lastName'] }
+        { model: SpotImage, attributes: ['id', 'url', 'preview'] },
+        { model: User, as: 'Owner', attributes: ['id', 'firstName', 'lastName'] }
       ]
     });
 
@@ -194,23 +194,23 @@ router.get('/:spotId', async (req, res) => {
   }
 });
 
-  // Get Spot by ID and details (Owner, SpotImages, Reviews)
+  // Get Spot by ID and details (Owner, SpotImage, Review)
 // router.get('/:id', async (req, res) => {
 //   const spotId = req.params.id;
 
 //   try {
 //     // Find spot by ID
-//     const spot = await Spots.findByPk(spotId, {
+//     const spot = await Spot.findByPk(spotId, {
 //       include: [
 //         // the owner (User) data
 //         {
-//           model: 'Users',
+//           model: 'User',
 //           as: 'Owner',
 //           attributes: ['id', 'firstName', 'lastName'],
 //         },
 //         // spot images
 //         {
-//           model: 'SpotImages',
+//           model: 'SpotImage',
 //           attributes: ['id', 'url', 'preview'],
 //         },
 //       ],
@@ -221,7 +221,7 @@ router.get('/:spotId', async (req, res) => {
 //     }
 
 //     // Get # of reviews and avg rating
-//     const reviews = await Reviews.findAll({
+//     const reviews = await Review.findAll({
 //       where: { spotId: spot.id },
 //       attributes: ['stars'],
 //     });
@@ -248,7 +248,7 @@ router.get('/:spotId', async (req, res) => {
 //       updatedAt: spot.updatedAt,
 //       numReviews: numReviews,
 //       avgStarRating: avgStarRating,
-//       SpotImages: spot.SpotImages,
+//       SpotImage: spot.SpotImage,
 //       Owner: spot.Owner,
 //     };
 
@@ -266,7 +266,7 @@ router.get("/:spotId/bookings", requireAuth, async (req, res) => {
 
   try {
     // Find the spot first to check ownership
-    const spot = await Spots.findByPk(spotId);
+    const spot = await Spot.findByPk(spotId);
 
     // If the spot is not found, return a 404 error
     if (!spot) {
@@ -279,7 +279,7 @@ router.get("/:spotId/bookings", requireAuth, async (req, res) => {
     // Set up the include for the Booking model
     let include = [
       {
-        model: Bookings,
+        model: Booking,
         attributes: ["spotId","startDate", "endDate"],
       },
     ];
@@ -288,9 +288,9 @@ router.get("/:spotId/bookings", requireAuth, async (req, res) => {
     if (isOwner) {
       include = [
         {
-          model: Bookings,
+          model: Booking,
           include: [
-            { model: Users, attributes: ["id", "firstName", "lastName"] },
+            { model: User, attributes: ["id", "firstName", "lastName"] },
           ],
           attributes: [
             "id",
@@ -306,17 +306,17 @@ router.get("/:spotId/bookings", requireAuth, async (req, res) => {
     }
 
     // Now, find the spot again with the proper include (based on ownership)
-    const spotWithBookings = await Spots.findByPk(spotId, { include });
+    const spotWithBookings = await Spot.findByPk(spotId, { include });
 
     // Map through the bookings and customize the response based on ownership
-    const bookings = spotWithBookings.Bookings.map((booking) => {
+    const bookings = spotWithBookings.Booking.map((booking) => {
       if (isOwner) {
         // Detailed booking info with user data for the owner
         return {
           User: {
-            id: booking.Users.id,
-            firstName: booking.Users.firstName,
-            lastName: booking.Users.lastName,
+            id: booking.User.id,
+            firstName: booking.User.firstName,
+            lastName: booking.User.lastName,
           },
           id: booking.id,
           spotId: booking.spotId,
@@ -337,7 +337,7 @@ router.get("/:spotId/bookings", requireAuth, async (req, res) => {
     });
 
     // Return the bookings in the correct format
-    return res.status(200).json({ Bookings: bookings });
+    return res.status(200).json({ Booking: bookings });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -350,7 +350,7 @@ router.get('/:spotId/reviews', async (req, res) => {
 
   try {
     // if the spot exists?
-    const spot = await Spots.findByPk(spotId);
+    const spot = await Spot.findByPk(spotId);
 
     if (!spot) {
       return res.status(404).json({
@@ -360,15 +360,15 @@ router.get('/:spotId/reviews', async (req, res) => {
     }
 
     // Find all reviews for the given spotId
-    const spotReviews = await Reviews.findAll({
+    const spotReviews = await Review.findAll({
       where: { spotId },
       include: [
         {
-          model: Users,
+          model: User,
           attributes: ['id', 'firstName', 'lastName'],
         },
         {
-          model: ReviewImages,
+          model: ReviewImage,
           attributes: ['id', 'url'],
         },
       ],
@@ -376,7 +376,7 @@ router.get('/:spotId/reviews', async (req, res) => {
 
 
     return res.status(200).json({
-      Reviews: spotReviews.map(review => ({
+      Review: spotReviews.map(review => ({
         id: review.id,
         userId: review.userId,
         spotId: review.spotId,
@@ -385,11 +385,11 @@ router.get('/:spotId/reviews', async (req, res) => {
         createdAt: review.createdAt,
         updatedAt: review.updatedAt,
         User: {
-          id: review.Users.id,
-          firstName: review.Users.firstName,
-          lastName: review.Users.lastName,
+          id: review.User.id,
+          firstName: review.User.firstName,
+          lastName: review.User.lastName,
         },
-        ReviewImages: review.ReviewImages.map(image => ({
+        ReviewImage: review.ReviewImage.map(image => ({
           id: image.id,
           url: image.url,
         })),
@@ -412,7 +412,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 
   try {
     // find spot by ID
-    const spot = await Spots.findByPk(spotId);
+    const spot = await Spot.findByPk(spotId);
 
     if (!spot) {
       return res.status(404).json({ message: 'Spot not found', statusCode: 404 });
@@ -485,7 +485,7 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
 
   try {
     // Find the spot
-    const spot = await Spots.findByPk(spotId);
+    const spot = await Spot.findByPk(spotId);
 
     if (!spot) {
       return res.status(404).json({ message: "Spot couldn't be found" });
@@ -497,7 +497,7 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
     }
 
     // Create and add the image
-    const newImage = await SpotImages.create({
+    const newImage = await SpotImage.create({
       spotId,
       url,
       preview
@@ -532,7 +532,7 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
 
   try {
     // Check if spot exists
-    const spot = await Spots.findByPk(spotId);
+    const spot = await Spot.findByPk(spotId);
     if (!spot) {
       return res.status(404).json({
         message: 'Spot not found',
@@ -541,7 +541,7 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
     }
 
     // Check if user has already made a review for this spot
-    const existingReview = await Reviews.findOne({
+    const existingReview = await Review.findOne({
       where: { userId, spotId },
     });
     if (existingReview) {
@@ -552,7 +552,7 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
     }
 
     // Create new review
-    const newReview = await Reviews.create({
+    const newReview = await Review.create({
       userId,
       spotId,
       review,
@@ -585,7 +585,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
 
   try {
     // spot by ID
-    const spot = await Spots.findByPk(spotId);
+    const spot = await Spot.findByPk(spotId);
 
     if (!spot) {
       return res.status(404).json({ message: 'Spot not found', statusCode: 404 });

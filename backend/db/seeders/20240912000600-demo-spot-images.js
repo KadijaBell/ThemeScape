@@ -67,7 +67,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    options.tableName = 'SpotImages';
+    options.tableName = 'SpotImage';
     return queryInterface.bulkDelete(options, {
       url: { [Op.in]: ['https://placehold.co/600x400/png'] }
     }, {});
@@ -108,7 +108,7 @@ module.exports = {
 //     ];
 
 //     try {
-//       await queryInterface.bulkInsert('SpotImages', spotImages, {});
+//       await queryInterface.bulkInsert('SpotImage', spotImages, {});
 //       console.log('Spot Images seeded successfully');
 //     } catch (error) {
 //       console.error('Error seeding Spot Images:', error);
@@ -116,6 +116,6 @@ module.exports = {
 //   },
 
 //   down: async (queryInterface, Sequelize) => {
-//     await queryInterface.bulkDelete('SpotImages', null, {});
+//     await queryInterface.bulkDelete('SpotImage', null, {});
 //   },
 // };

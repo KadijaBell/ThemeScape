@@ -1,5 +1,5 @@
 const express = require("express");
-const { SpotImages, Spots } = require("../../db/models");
+const { SpotImage, Spot } = require("../../db/models");
 const router = express.Router();
 const { requireAuth } = require("../../utils/auth");
 const { handleValidationErrors } = require("../../utils/validation");
@@ -12,7 +12,7 @@ router.delete('/:imageId', requireAuth, async (req, res) => {
 
   try {
     // Find the image
-    const image = await SpotImages.findByPk(imageId);
+    const image = await SpotImage.findByPk(imageId);
     if (!image) {
       return res.status(404).json({ message: "Spot Image couldn't be found" });
     }

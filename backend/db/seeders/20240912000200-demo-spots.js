@@ -86,14 +86,14 @@ module.exports = {
     ];
     try {
       await Spot.bulkCreate(spotSeed , { validate: true });
-      //await queryInterface.bulkInsert('Spots', spotSeed, {validate : true});
+      //await queryInterface.bulkInsert('Spot', spotSeed, {validate : true});
     } catch (error) {
       console.error(error);
     }
 
   },
   async down(queryInterface, Sequelize) {
-    options.tableName = 'Spots';
+    options.tableName = 'Spot';
     return queryInterface.bulkDelete(options, {
       name: { [Op.in]: ['App Academy', 'App Academy admission office', 'Shutter Island', 'Residence Inn'] }
     }, {});
@@ -154,14 +154,14 @@ module.exports = {
 //     ];
 
 //     try {
-//       await queryInterface.bulkInsert('Spots', spots, {});
-//       console.log('Spots seeded successfully');
+//       await queryInterface.bulkInsert('Spot', spots, {});
+//       console.log('Spot seeded successfully');
 //     } catch (error) {
-//       console.error('Error seeding Spots:', error);
+//       console.error('Error seeding Spot:', error);
 //     }
 //   },
 
 //   down: async (queryInterface, Sequelize) => {
-//     await queryInterface.bulkDelete('Spots', null, {});
+//     await queryInterface.bulkDelete('Spot', null, {});
 //   },
 // };

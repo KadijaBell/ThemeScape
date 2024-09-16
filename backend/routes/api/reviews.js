@@ -1,5 +1,5 @@
 const express = require("express");
-const {  Spots, Reviews, ReviewImages } = require("../../db/models");
+const {  Spot, Review, ReviewImage } = require("../../db/models");
 const router = express.Router();
 const { requireAuth } = require("../../utils/auth");
 
@@ -9,22 +9,22 @@ const { requireAuth } = require("../../utils/auth");
       const userId = req.user.id;
 
       try {
-        // Find reviews by the current user, including data for User, Spot, and ReviewImages
-        const userReviews = await Reviews.findAll({
+        // Find reviews by the current user, including data for User, Spot, and ReviewImage
+        const userReviews = await Review.findAll({
           where: { userId },
           include: [
             {
-              model: Users,
+              model: User,
               attributes: ['id', 'firstName', 'lastName'],
             },
             {
-              model: Spots,
+              model: Spot,
               attributes: [
                 'id', 'ownerId', 'address', 'city', 'state', 'country', 'lat', 'lng', 'name', 'price'
               ],
               include: [
                 {
-                  model: SpotImages,
+                  model: SpotImage,
                   as: 'previewImage',
                   attributes: ['url'],
                   where: { preview: true },
@@ -33,7 +33,7 @@ const { requireAuth } = require("../../utils/auth");
               ]
             },
             {
-              model: ReviewImages,
+              model: ReviewImage,
               attributes: ['id', 'url'],
             },
           ],
@@ -41,15 +41,15 @@ const { requireAuth } = require("../../utils/auth");
 
 
         if (!userReviews.length) {
-          return res.status(200).json({ Reviews: [] });
+          return res.status(200).json({ Review: [] });
         }
 
         // Process the reviews and send the response
         return res.status(200).json({
-          Reviews: userReviews.map(review => {
+          Review: userReviews.map(review => {
             // Extract the preview image if it exists
-            const previewImage = review.Spots.SpotImages && review.Spots.SpotImages[0]
-              ? review.Spots.SpotImages[0].url
+            const previewImage = review.Spot.SpotImage && review.Spot.SpotImage[0]
+              ? review.Spot.SpotImage[0].url
               : null;
 
             return {
@@ -61,24 +61,24 @@ const { requireAuth } = require("../../utils/auth");
               createdAt: review.createdAt,
               updatedAt: review.updatedAt,
               User: {
-                id: review.Users.id,
-                firstName: review.Users.firstName,
-                lastName: review.Users.lastName,
+                id: review.User.id,
+                firstName: review.User.firstName,
+                lastName: review.User.lastName,
               },
               Spot: {
-                id: review.Spots.id,
-                ownerId: review.Spots.ownerId,
-                address: review.Spots.address,
-                city: review.Spots.city,
-                state: review.Spots.state,
-                country: review.Spots.country,
-                lat: review.Spots.lat,
-                lng: review.Spots.lng,
-                name: review.Spots.name,
-                price: review.Spots.price,
+                id: review.Spot.id,
+                ownerId: review.Spot.ownerId,
+                address: review.Spot.address,
+                city: review.Spot.city,
+                state: review.Spot.state,
+                country: review.Spot.country,
+                lat: review.Spot.lat,
+                lng: review.Spot.lng,
+                name: review.Spot.name,
+                price: review.Spot.price,
                 previewImage: previewImage, // Set the preview image URL or null
               },
-              ReviewImages: review.ReviewImages.map(image => ({
+              ReviewImage: review.ReviewImage.map(image => ({
                 id: image.id,
                 url: image.url,
               })),
@@ -103,7 +103,7 @@ const { requireAuth } = require("../../utils/auth");
 
     try {
       // Fetch the existing review by ID
-      const existingReview = await Reviews.findByPk(reviewId);
+      const existingReview = await Review.findByPk(reviewId);
 
       // If review doesn't exist, return a 404 error
       if (!existingReview) {
@@ -177,7 +177,7 @@ router.post('/:id/images', requireAuth, async (req, res) => {
 
   try {
     // if review exists?
-    const review = await Reviews.findByPk(reviewId);
+    const review = await Review.findByPk(reviewId);
     if (!review) {
       return res.status(404).json({
         message: 'Review not found',
@@ -194,7 +194,7 @@ router.post('/:id/images', requireAuth, async (req, res) => {
     }
 
     // check if the max num of images for this review has been met
-    const reviewImagesCount = await ReviewImages.count({
+    const reviewImagesCount = await ReviewImage.count({
       where: { reviewId },
     });
     if (reviewImagesCount >= maxReviewImages) {
@@ -204,7 +204,7 @@ router.post('/:id/images', requireAuth, async (req, res) => {
       });
     }
 // Create new image
-const newImage = await ReviewImages.create({
+const newImage = await ReviewImage.create({
     reviewId,
     url,
   });
@@ -230,7 +230,7 @@ router.delete("/:reviewId", requireAuth, async (req, res) => {
 
   try {
     // Find the review by ID
-    const review = await Reviews.findByPk(reviewId);
+    const review = await Review.findByPk(reviewId);
 
     // If the review is not found, return 404
     if (!review) {

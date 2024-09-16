@@ -1,5 +1,5 @@
 const express = require("express");
-const { Bookings, Spots } = require("../../db/models");
+const { Booking, Spot } = require("../../db/models");
 const router = express.Router();
 const { requireAuth } = require("../../utils/auth");
 const { handleValidationErrors } = require("../../utils/validation");
@@ -38,10 +38,10 @@ const validateBooking = [
 router.get("/current", requireAuth, async (req, res) => {
   const currentUserId = req.user.id;
   try {
-    const bookings = await Bookings.findAll({
+    const bookings = await Booking.findAll({
       where: { userId: currentUserId },
       include: {
-        model: Spots, // Include the Spot model to get spot details
+        model: Spot, // Include the Spot model to get spot details
         attributes: [
           "id",
           "ownerId",
@@ -57,7 +57,7 @@ router.get("/current", requireAuth, async (req, res) => {
         ],
       },
     });
-    return res.status(200).json({ Bookings: bookings });
+    return res.status(200).json({ Booking: bookings });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -72,7 +72,7 @@ router.get("/current", requireAuth, async (req, res) => {
 
 //   try {
 //     // Find the booking by ID
-//     const booking = await Bookings.findByPk(bookingId);
+//     const booking = await Booking.findByPk(bookingId);
 
 //     // If booking is not found, return 404
 //     if (!booking) {
@@ -107,7 +107,7 @@ router.put("/:bookingId", requireAuth, validateBooking, async (req, res) => {
 
   try {
     // Find the booking by ID
-    const booking = await Bookings.findByPk(bookingId);
+    const booking = await Booking.findByPk(bookingId);
 
     // If booking is not found, return 404
     if (!booking) {
@@ -137,7 +137,7 @@ router.put("/:bookingId", requireAuth, validateBooking, async (req, res) => {
 
         try {
           // Find the booking by ID
-          const booking = await Bookings.findByPk(bookingId);
+          const booking = await Booking.findByPk(bookingId);
 
           // If booking is not found, return 404
           if (!booking) {
@@ -156,7 +156,7 @@ router.put("/:bookingId", requireAuth, validateBooking, async (req, res) => {
           }
 
           // Get all bookings for the same spot
-          const existingBookings = await Bookings.findAll({
+          const existingBookings = await Booking.findAll({
             where: { spotId: booking.spotId },
           });
 
@@ -261,9 +261,9 @@ router.delete("/:bookingId", requireAuth, async (req, res) => {
 
   try {
     // Find the booking by ID
-    const booking = await Bookings.findByPk(bookingId, {
+    const booking = await Booking.findByPk(bookingId, {
       include: {
-        model: Spots,
+        model: Spot,
         attributes: ["ownerId"],
       },
     });
@@ -278,13 +278,13 @@ router.delete("/:bookingId", requireAuth, async (req, res) => {
     if (currentDate >= booking.startDate) {
       return res
         .status(403)
-        .json({ message: "Bookings that have been started can't be deleted" });
+        .json({ message: "Booking that have been started can't be deleted" });
     }
 
     // Check if the booking belongs to the current user or if the spot owner is the current user
     if (
       booking.userId !== currentUserId &&
-      booking.Spots.ownerId !== currentUserId
+      booking.Spot.ownerId !== currentUserId
     ) {
       return res
         .status(403)

@@ -47,7 +47,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    options.tableName = 'Bookings';
+    options.tableName = 'Booking';
     return queryInterface.bulkDelete(options, {
       spotId: { [Op.in]: [1, 2, 3] }
     }, {});
@@ -91,14 +91,14 @@ module.exports = {
 //     ];
 
 //     try {
-//       await queryInterface.bulkInsert('Bookings', bookings, {});
-//       console.log('Bookings seeded successfully');
+//       await queryInterface.bulkInsert('Booking', bookings, {});
+//       console.log('Booking seeded successfully');
 //     } catch (error) {
-//       console.error('Error seeding Bookings:', error);
+//       console.error('Error seeding Booking:', error);
 //     }
 //   },
 
 //   down: async (queryInterface, Sequelize) => {
-//     await queryInterface.bulkDelete('Bookings', null, {});
+//     await queryInterface.bulkDelete('Booking', null, {});
 //   },
 // };

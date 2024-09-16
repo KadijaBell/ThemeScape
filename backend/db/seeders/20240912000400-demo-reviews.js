@@ -52,7 +52,7 @@ try {
   },
 
   async down(queryInterface, Sequelize) {
-    options.tableName = 'Reviews';
+    options.tableName = 'Review';
     return queryInterface.bulkDelete(options, {
       review: { [Op.in]: ['This place gives me the creeps!!', 'I really like this place!', 'Great place!'] }
     }, {})
@@ -96,14 +96,14 @@ try {
 //     ];
 
 //     try {
-//       await queryInterface.bulkInsert('Reviews', reviews, {});
-//       console.log('Reviews seeded successfully');
+//       await queryInterface.bulkInsert('Review', reviews, {});
+//       console.log('Review seeded successfully');
 //     } catch (error) {
-//       console.error('Error seeding Reviews:', error);
+//       console.error('Error seeding Review:', error);
 //     }
 //   },
 
 //   down: async (queryInterface, Sequelize) => {
-//     await queryInterface.bulkDelete('Reviews', null, {});
+//     await queryInterface.bulkDelete('Review', null, {});
 //   },
 // };

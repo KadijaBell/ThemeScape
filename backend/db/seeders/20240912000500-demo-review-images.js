@@ -36,7 +36,7 @@ try {
   },
 
   async down(queryInterface, Sequelize) {
-    options.tableName = 'ReviewImages';
+    options.tableName = 'ReviewImage';
     return queryInterface.bulkDelete(options, {
       url: { [Op.in]: ['https://placehold.co/600x400/png'] }
     }, {});
@@ -73,7 +73,7 @@ try {
 //     ];
 
 //     try {
-//       await queryInterface.bulkInsert('ReviewImages', reviewImages, {});
+//       await queryInterface.bulkInsert('ReviewImage', reviewImages, {});
 //       console.log('Review Images seeded successfully');
 //     } catch (error) {
 //       console.error('Error seeding Review Images:', error);
@@ -81,6 +81,6 @@ try {
 //   },
 
 //   down: async (queryInterface, Sequelize) => {
-//     await queryInterface.bulkDelete('ReviewImages', null, {});
+//     await queryInterface.bulkDelete('ReviewImage', null, {});
 //   },
 // };
