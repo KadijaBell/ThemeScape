@@ -75,9 +75,9 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       // A user can have many spots, reviews, bookings
-      User.hasMany(models.Spots, { foreignKey: 'ownerId', onDelete: 'CASCADE' });
-      User.hasMany(models.Reviews, { foreignKey: 'userId', onDelete: 'CASCADE' });
-      User.hasMany(models.Bookings, { foreignKey: 'userId', onDelete: 'CASCADE' });
+      User.hasMany(models.Spot, { foreignKey: 'ownerId', onDelete: 'CASCADE' });
+      User.hasMany(models.Review, { foreignKey: 'userId', onDelete: 'CASCADE' });
+      User.hasMany(models.Booking, { foreignKey: 'userId', onDelete: 'CASCADE' });
     }
   }
 

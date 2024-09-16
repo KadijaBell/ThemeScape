@@ -47,13 +47,13 @@
 // };
 'use strict';
 const { Model } = require('sequelize');
-const {User, Spot } = require('../models')
+
 module.exports = (sequelize, DataTypes) => {
   class Booking extends Model {
     static associate(models) {
       // Booking belongs to a user and a spot
-      Booking.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
-      Booking.belongsTo(Spot, { foreignKey: 'spotId', onDelete: 'CASCADE' });
+      Booking.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+      Booking.belongsTo(models.Spot, { foreignKey: 'spotId', onDelete: 'CASCADE' });
     }
   }
 
