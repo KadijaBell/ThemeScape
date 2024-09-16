@@ -1,21 +1,22 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { setTokenCookie, requireAuth } = require('../../utils/auth');
-const { User } = require('../../db/models');
-const router = express.Router();
+const { Spot, SpotImage, User, Review, Booking, ReviewImage} = require("../../db/models");
 const { check } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
+const router = express.Router();
+
 
 
 //middleware
 const validateSignup = [
   check('firstName')
     .exists({ checkFalsy: true })
-    .isLength({ min: 2 })
+    // .isLength({ min: 2 })
     .withMessage('Please provide a first name with at least 2 characters.'),
   check('lastName')
     .exists({ checkFalsy: true })
-    .isLength({ min: 2 })
+    // .isLength({ min: 2 })
     .withMessage('Please provide a last name with at least 2 characters.'),
     check('email')
       .exists({ checkFalsy: true })
@@ -52,7 +53,7 @@ router.post('/', validateSignup, async (req, res) => {
       };
 
       await setTokenCookie(res, safeUser);
-
+      res.status(201);
     return res.json({
       user: safeUser
     });
