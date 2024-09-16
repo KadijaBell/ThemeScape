@@ -95,8 +95,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       references:{
         model: "Users",
-        key: "id" ,
-        as: "Owner"
+        key: "id"
       }
     },
     address: {
