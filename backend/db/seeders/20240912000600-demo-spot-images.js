@@ -59,7 +59,7 @@ module.exports = {
    ];
 
     try {
-      await SpotImages.bulkCreate(spotImageSeed, {validate : true});
+      await SpotImage.bulkCreate(spotImageSeed, {validate : true});
     } catch (error) {
       console.error(error)
     }

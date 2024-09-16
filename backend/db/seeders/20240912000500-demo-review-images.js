@@ -28,7 +28,7 @@ module.exports = {
       },
     ];
 try {
-  await ReviewImages.bulkCreate(reviewImageSeed, {validate : true});
+  await ReviewImage.bulkCreate(reviewImageSeed, {validate : true});
 } catch (error) {
   console.error(error)
 }

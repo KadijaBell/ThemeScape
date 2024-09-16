@@ -85,7 +85,7 @@ module.exports = {
       },
     ];
     try {
-      await Spots.bulkCreate(spotSeed , { validate: true });
+      await Spot.bulkCreate(spotSeed , { validate: true });
       //await queryInterface.bulkInsert('Spots', spotSeed, {validate : true});
     } catch (error) {
       console.error(error);

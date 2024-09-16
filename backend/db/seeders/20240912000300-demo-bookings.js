@@ -39,7 +39,7 @@ module.exports = {
       },
     ];
     try {
-      await Bookings.bulkCreate( bookingSeed , {validate : true});
+      await Booking.bulkCreate( bookingSeed , {validate : true});
     } catch (error) {
       console.error(error);
     }

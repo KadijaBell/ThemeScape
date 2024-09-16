@@ -43,7 +43,7 @@ module.exports = {
     },
   ];
 try {
-  await Reviews.bulkCreate(reviewSeed, {validate : true});
+  await Review.bulkCreate(reviewSeed, {validate : true});
 
 } catch (error) {
  console.error(error);
