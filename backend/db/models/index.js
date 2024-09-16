@@ -1,5 +1,7 @@
 'use strict';
-
+const User = require('./user.js');
+const Spot = require('./spot.js');
+const Booking = require('./booking.js')
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');

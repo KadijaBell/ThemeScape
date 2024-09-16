@@ -95,8 +95,8 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       references:{
         model: "Users",
-        key: "id"
-      }
+        key: "id" ,
+     }
     },
     address: {
       type: DataTypes.STRING,
