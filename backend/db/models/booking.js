@@ -47,7 +47,7 @@
 // };
 'use strict';
 const { Model } = require('sequelize');
-
+const {User, Spot } = require('../models')
 module.exports = (sequelize, DataTypes) => {
   class Booking extends Model {
     static associate(models) {
