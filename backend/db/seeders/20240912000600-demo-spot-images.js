@@ -67,7 +67,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    options.tableName = 'SpotImage';
+    options.tableName = 'SpotImages';
     return queryInterface.bulkDelete(options, {
       url: { [Op.in]: ['https://placehold.co/600x400/png'] }
     }, {});

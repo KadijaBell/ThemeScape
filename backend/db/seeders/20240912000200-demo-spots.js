@@ -93,7 +93,7 @@ module.exports = {
 
   },
   async down(queryInterface, Sequelize) {
-    options.tableName = 'Spot';
+    options.tableName = 'Spots';
     return queryInterface.bulkDelete(options, {
       name: { [Op.in]: ['App Academy', 'App Academy admission office', 'Shutter Island', 'Residence Inn'] }
     }, {});

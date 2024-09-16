@@ -52,7 +52,7 @@ try {
   },
 
   async down(queryInterface, Sequelize) {
-    options.tableName = 'Review';
+    options.tableName = 'Reviews';
     return queryInterface.bulkDelete(options, {
       review: { [Op.in]: ['This place gives me the creeps!!', 'I really like this place!', 'Great place!'] }
     }, {})

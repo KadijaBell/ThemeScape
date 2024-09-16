@@ -36,7 +36,7 @@ try {
   },
 
   async down(queryInterface, Sequelize) {
-    options.tableName = 'ReviewImage';
+    options.tableName = 'ReviewImages';
     return queryInterface.bulkDelete(options, {
       url: { [Op.in]: ['https://placehold.co/600x400/png'] }
     }, {});
