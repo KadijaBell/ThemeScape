@@ -5,7 +5,6 @@ const { check, validationResult } = require('express-validator');
 const router = express.Router();
 const { Op } = require('sequelize');
 
-
 // GET all spots filtered with query parameters
 router.get('/', async (req, res) => {
   let { page, size, minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query;
@@ -178,8 +177,30 @@ router.post('/', requireAuth, async (req, res) => {
     });
 
     res.status(201).json(newSpot);
-  } catch (err) {
-    res.status(400).json({ message: "Bad Request", errors: err.errors });
+  } catch (error) {
+
+    if (error.name === 'SequelizeValidationError') {
+      const errors = {};
+
+      for (let err of error.errors) {
+          if (err.path === 'address') errors.address = "Street address is required";
+          if (err.path === 'city') errors.city = "City is required";
+          if (err.path === 'state') errors.state = "State is required";
+          if (err.path === 'country') errors.country = "Country is required";
+          if (err.path === 'lat') errors.lat = "Latitude must be within -90 and 90";
+          if (err.path === 'lng') errors.lng = "Longitude must be within -180 and 180";
+          if (err.path === 'name') errors.name = "Name must be less than 50 characters";
+          if (err.path === 'description') errors.description = "Description is required";
+          if (err.path === 'price') errors.price = "Price per day must be a positive number";
+      }
+
+      return res.status(400).json({
+          message: "Bad Request",
+          errors
+      });
+  }
+
+  next(error);
   }
 });
 
@@ -255,102 +276,161 @@ router.post('/', requireAuth, async (req, res) => {
 
 // Get all spots owned by the current user
 router.get('/current', requireAuth, async (req, res) => {
-  try {
-    const spots = await Spot.findAll({
-      where: { ownerId: req.user.id }
-    });
-    return res.status(200).json({ Spot: spots });
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-//details of a spot from an id
-router.get('/:spotId', async (req, res) => {
-  const { spotId } = req.params;
-
-  try {
-    const spot = await Spot.findByPk(spotId, {
+  const userId = req.user.id;
+  const spots = await Spot.findAll({
+      where: {ownerId: userId},
       include: [
-        { model: SpotImage, attributes: ['id', 'url', 'preview'] },
-        { model: User, as: 'Owner', attributes: ['id', 'firstName', 'lastName'] }
-      ]
-    });
+          {
+              model: Review,
+              attributes: ['stars'],
+              required: false
+          },
+          {
+              model: SpotImage,
+              attributes: ['url', 'preview'],
+              required: false
+          },
+      ],
+  })
 
-    if (!spot) {
-      return res.status(404).json({ message: "Spot couldn't be found" });
-    }
+  let spotsList = []
 
-    return res.status(200).json(spot);
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+  spots.forEach((spot) => {
+      spotsList.push(spot.toJSON())
+  })
 
-  // Get Spot by ID and details (Owner, SpotImage, Review)
-// router.get('/:id', async (req, res) => {
-//   const spotId = req.params.id;
+  const formattedSpots= spotsList.map((spot) => {
+      spot.SpotImages.forEach((image) => {
+          if(image.preview === true){
+              spot.previewImage = image.url
+          }
+      })
+      if(!spot.previewImage){
+          spot.previewImage = 'No preview image available'
+      }
+      delete spot.SpotImages
+
+      let totalStars = 0;
+      let reviewCount = 0;
+      spot.Reviews.forEach((review) => {
+          totalStars += review.stars;
+          reviewCount++;
+      })
+
+      if(reviewCount > 0){
+          spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));;
+      } else {
+          spot.avgRating = null
+      }
+      delete spot.Reviews
+      return {
+          id: spot.id,
+          ownerId: spot.ownerId,
+          address: spot.address,
+          city: spot.city,
+          state: spot.state,
+          country: spot.country,
+          lat: spot.lat,
+          lng: spot.lng,
+          name: spot.name,
+          description: spot.description,
+          price: spot.price,
+          createdAt: spot.createdAt,
+          updatedAt: spot.updatedAt,
+          avgRating: spot.avgRating,
+          previewImage: spot.previewImage
+      };
+  })
+  res.json({Spots: formattedSpots})
+
+})
+
+// //details of a spot from an id
+// router.get('/:spotId', async (req, res) => {
+//   const { spotId } = req.params;
 
 //   try {
-//     // Find spot by ID
 //     const spot = await Spot.findByPk(spotId, {
 //       include: [
-//         // the owner (User) data
-//         {
-//           model: 'User',
-//           as: 'Owner',
-//           attributes: ['id', 'firstName', 'lastName'],
-//         },
-//         // spot images
-//         {
-//           model: 'SpotImage',
-//           attributes: ['id', 'url', 'preview'],
-//         },
-//       ],
+//         { model: SpotImage, attributes: ['id', 'url', 'preview'] },
+//         { model: User, as: 'Owner', attributes: ['id', 'firstName', 'lastName'] }
+//       ]
 //     });
 
 //     if (!spot) {
-//       return res.status(404).json({ message: 'Spot not found', statusCode: 404 });
+//       return res.status(404).json({ message: "Spot couldn't be found" });
 //     }
 
-//     // Get # of reviews and avg rating
-//     const reviews = await Review.findAll({
-//       where: { spotId: spot.id },
-//       attributes: ['stars'],
-//     });
-
-//     const numReviews = reviews.length;
-//     const avgStarRating = reviews.length
-//       ? reviews.reduce((sum, review) => sum + review.stars, 0) / numReviews
-//       : 0;
-
-//     // response object
-//     const spotDetails = {
-//       id: spot.id,
-//       ownerId: spot.ownerId,
-//       address: spot.address,
-//       city: spot.city,
-//       state: spot.state,
-//       country: spot.country,
-//       lat: spot.lat,
-//       lng: spot.lng,
-//       name: spot.name,
-//       description: spot.description,
-//       price: spot.price,
-//       createdAt: spot.createdAt,
-//       updatedAt: spot.updatedAt,
-//       numReviews: numReviews,
-//       avgStarRating: avgStarRating,
-//       SpotImage: spot.SpotImage,
-//       Owner: spot.Owner,
-//     };
-
-//     res.json(spotDetails);
+//     return res.status(200).json(spot);
 //   } catch (error) {
-//     console.error('Error fetching spot details:', error);
-//     res.status(500).json({ message: 'Internal server error', statusCode: 500 });
+//     return res.status(500).json({ message: 'Internal Server Error' });
 //   }
 // });
+
+  // Get Spot by ID and details (Owner, SpotImage, Review)
+router.get('/:id', async (req, res) => {
+  const spotId = req.params.id;
+
+  try {
+    // Find spot by ID
+    const spot = await Spot.findByPk(spotId, {
+      include: [
+        // the owner (User) data
+        {
+          model: 'User',
+          as: 'Owner',
+          attributes: ['id', 'firstName', 'lastName'],
+        },
+        // spot images
+        {
+          model: 'SpotImage',
+          attributes: ['id', 'url', 'preview'],
+        },
+      ],
+    });
+
+    if (!spot) {
+      return res.status(404).json({ message: 'Spot not found', statusCode: 404 });
+    }
+
+    // Get # of reviews and avg rating
+    const reviews = await Review.findAll({
+      where: { spotId: spot.id },
+      attributes: ['stars'],
+    });
+
+    const numReviews = reviews.length;
+    const avgStarRating = reviews.length
+      ? reviews.reduce((sum, review) => sum + review.stars, 0) / numReviews
+      : 0;
+
+    // response object
+    const spotDetails = {
+      id: spot.id,
+      ownerId: spot.ownerId,
+      address: spot.address,
+      city: spot.city,
+      state: spot.state,
+      country: spot.country,
+      lat: spot.lat,
+      lng: spot.lng,
+      name: spot.name,
+      description: spot.description,
+      price: spot.price,
+      createdAt: spot.createdAt,
+      updatedAt: spot.updatedAt,
+      numReviews: numReviews,
+      avgStarRating: avgStarRating,
+      SpotImage: spot.SpotImage,
+      Owner: spot.Owner,
+    };
+
+    res.json(spotDetails);
+  } catch (error) {
+    console.error('Error fetching spot details:', error);
+    res.status(500).json({ message: 'Internal server error', statusCode: 500 });
+  }
+});
 
 // get all bookings for a spot based on spot id
 router.get("/:spotId/bookings", requireAuth, async (req, res) => {
@@ -638,9 +718,9 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
       where: { userId, spotId },
     });
     if (existingReview) {
-      return res.status(403).json({
+      return res.status(500).json({
         message: 'User already has a review for this spot',
-        statusCode: 403,
+        statusCode: 500,
       });
     }
 
