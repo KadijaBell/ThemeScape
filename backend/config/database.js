@@ -22,7 +22,7 @@ module.exports = {
     },
     define: {
       schema: process.env.SCHEMA,
-      underscored: true
+      // underscored: true
     }
   }
 };
