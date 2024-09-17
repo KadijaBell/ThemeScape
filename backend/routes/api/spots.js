@@ -697,9 +697,9 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
       where: { userId, spotId },
     });
     if (existingReview) {
-      return res.status(403).json({
+      return res.status(500).json({
         message: 'User already has a review for this spot',
-        statusCode: 403,
+        // statusCode: 403,
       });
     }
 

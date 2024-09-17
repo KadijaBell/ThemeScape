@@ -34,35 +34,66 @@ const validateBooking = [
 
 
 
-// gat all of the current user's bookings
-router.get("/current", requireAuth, async (req, res) => {
-  const currentUserId = req.user.id;
+// // gat all of the current user's bookings
+// router.get("/current", requireAuth, async (req, res) => {
+//   const currentUserId = req.user.id;
+//   try {
+//     const bookings = await Booking.findAll({
+//       where: { userId: currentUserId },
+//       include: {
+//         model: Spot, // Include the Spot model to get spot details
+//         attributes: [
+//           "id",
+//           "ownerId",
+//           "address",
+//           "city",
+//           "state",
+//           "country",
+//           "lat",
+//           "lng",
+//           "name",
+//           "price",
+//           "previewImage",
+//         ],
+//       },
+//     });
+//     return res.status(200).json({ Booking: bookings });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// })
+
+router.get("/current", requireAuth, async (req, res, next) => {
+  const uid = req.user.id;
+
   try {
     const bookings = await Booking.findAll({
-      where: { userId: currentUserId },
-      include: {
-        model: Spot, // Include the Spot model to get spot details
-        attributes: [
-          "id",
-          "ownerId",
-          "address",
-          "city",
-          "state",
-          "country",
-          "lat",
-          "lng",
-          "name",
-          "price",
-          "previewImage",
-        ],
-      },
-    });
-    return res.status(200).json({ Booking: bookings });
+      where: { userId: uid },
+      include: [
+        {
+          model: Spot,
+          attributes: [
+            "id",
+            "ownerId",
+            "address",
+            "city",
+            "state",
+            "country",
+            "lat",
+            "lng",
+            "name",
+            "previewImage",
+            "price",
+          ],
+
+        }]});
+
+    return res.json({ Bookings: bookings });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
-})
+});
 
 //edit a booking
 //   router.put("/:bookingId", requireAuth, validateBooking, async (req, res) => {
