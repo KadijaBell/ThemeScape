@@ -3,6 +3,7 @@ const { Spot, SpotImage, User, Review, Booking, ReviewImage} = require("../../db
 const { requireAuth } = require("../../utils/auth");
 const { check, validationResult } = require('express-validator');
 const router = express.Router();
+const { Op } = require('sequelize');
 
 
 // GET all spots filtered with query parameters
