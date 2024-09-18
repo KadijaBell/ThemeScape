@@ -36,12 +36,12 @@ const validateBooking = [
 
 
 //Get current users bookings
-router.get("/current", requireAuth, async (req, res, next) => {
-  const uid = req.user.id;
+router.get("/current", requireAuth, async (req, res) => {
+  const userId = req.user.id;
 
   try {
     const bookings = await Booking.findAll({
-      where: { userId: uid },
+      where: { userId: userId },
       include: [
         {
           model: Spot,
@@ -63,7 +63,8 @@ router.get("/current", requireAuth, async (req, res, next) => {
 
     return res.json({ Bookings: bookings });
   } catch (error) {
-    next(error);
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 

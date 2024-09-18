@@ -8,93 +8,292 @@ const reviewsRouter = require("./reviews");
 const { Op } = require('sequelize');
 const { handleValidationErrors } = require("../../utils/validation");
 
-// GET all spots filtered with query parameters
-router.get('/', async (req, res) => {
-  let { page, size, minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query;
+// validate spot body
+const validateSpot = [
+  check("address")
+    .exists({ checkFalsy: true })
+    .withMessage("Street address is required"), // 400
+  check("city").exists({ checkFalsy: true }).withMessage("City is required"), // 400
+  check("state").exists({ checkFalsy: true }).withMessage("State is required"), // 400
+  check("country")
+    .exists({ checkFalsy: true })
+    .withMessage("Country is required"), // 400
+  check("lat")
+    .exists({ checkFalsy: true })
+    .isFloat({ min: -90, max: 90 })
+    .withMessage("Latitude is not valid"),
+  check("lng")
+    .exists({ checkFalsy: true })
+    .isFloat({ min: -180, max: 180 })
+    .withMessage("Longitude is not valid"),
+  check("name")
+    .exists({ checkFalsy: true })
+    .isLength({ max: 50 })
+    .withMessage("Name must be less than 50 characters"),
+  check("description")
+    .exists({ checkFalsy: true })
+    .withMessage("Description is required"),
+  check("price")
+    .exists({ checkFalsy: true })
+    .isFloat({ gt: 0 })
+    .withMessage("Price per day is required"),
+  handleValidationErrors,
+];
 
-  // Convert query parameters to proper types
-  page = parseInt(page) || 1;  // Default to 1 if invalid or not provided
-  size = parseInt(size) || 20;  // Default to 20 if invalid or not provided
-  minLat = minLat !== undefined ? parseFloat(minLat) : undefined;
-  maxLat = maxLat !== undefined ? parseFloat(maxLat) : undefined;
-  minLng = minLng !== undefined ? parseFloat(minLng) : undefined;
-  maxLng = maxLng !== undefined ? parseFloat(maxLng) : undefined;
-  minPrice = minPrice !== undefined ? parseFloat(minPrice) : undefined;
-  maxPrice = maxPrice !== undefined ? parseFloat(maxPrice) : undefined
+// check validation for reviews
+const validateReview = [
+  check("review")
+    .exists({ checkFalsy: true })
+    .withMessage("Review text is required"),
+  check("stars")
+    .exists({ checkFalsy: true })
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Stars must be an integer from 1 to 5"),
+  handleValidationErrors,
+];
 
-  // Validation
+const validateBooking = [
+  // Check if startDate exists
+  check("startDate")
+    .exists({ checkFalsy: true })
+    .withMessage("Start date is required"),
+
+  // Check if endDate exists
+  check("endDate")
+    .exists({ checkFalsy: true })
+    .withMessage("End date is required"),
+
+  // Custom validation to check if startDate is before endDate
+  check("startDate").custom((value, { req }) => {
+    const startDate = new Date(value);
+    const endDate = new Date(req.body.endDate);
+
+    if (startDate >= endDate) {
+      throw new Error("Start date must be before end date");
+    }
+
+    // If the validation passes, return true
+    return true;
+  }),
+  handleValidationErrors,
+];
+
+// CRUD Routes to manage Spots, SpotImages, Reviews, Bookings
+
+router.use("/:spotId/bookings", bookingsRouter);
+router.use("/:spotId/reviews", reviewsRouter);
+
+// Get all Spots
+// /api/spots
+router.get("/", async (req, res) => {
+  let {
+    page = 1,
+    size = 20,
+    maxLat,
+    minLat,
+    maxLng,
+    minLng,
+    minPrice,
+    maxPrice,
+  } = req.query;
+
   const errors = {};
-  if (isNaN(page) || page < 1) errors.page = "Page must be greater than or equal to 1";
-  if (isNaN(size) || size < 1 || size > 20) errors.size = "Size must be between 1 and 20";
-  if (minLat !== undefined && (isNaN(minLat) || minLat < -90 || minLat > 90)) errors.minLat = "Minimum latitude is invalid";
-  if (maxLat !== undefined && (isNaN(maxLat) || maxLat < -90 || maxLat > 90)) errors.maxLat = "Maximum latitude is invalid";
-  if (minLng !== undefined && (isNaN(minLng) || minLng < -180 || minLng > 180)) errors.minLng = "Minimum longitude is invalid";
-  if (maxLng !== undefined && (isNaN(maxLng) || maxLng < -180 || maxLng > 180)) errors.maxLng = "Maximum longitude is invalid";
-  if (minPrice !== undefined && (isNaN(minPrice) || minPrice < 0)) errors.minPrice = "Minimum price must be greater than or equal to 0";
-  if (maxPrice !== undefined && (isNaN(maxPrice) || maxPrice < 0)) errors.maxPrice = "Maximum price must be greater than or equal to 0";
-   // If there are errors, respond with a 400 status
-   if (Object.keys(errors).length > 0) {
-    return res.status(400).json({
-        message: "Bad Request",
-        errors
-    });
-}
 
-const spots = await Spot.findAll({
+  // Convert to numbers for validation
+  page = Number(page);
+  size = Number(size);
+  minLat = Number(minLat);
+  maxLat = Number(maxLat);
+  minLng = Number(minLng);
+  maxLng = Number(maxLng);
+  minPrice = Number(minPrice);
+  maxPrice = Number(maxPrice);
+
+  // Validate 'page' and 'size'
+  if (page < 1) {
+    errors.page = "Page must be greater than or equal to 1";
+  }
+  if (size < 1) {
+    errors.size = "Size must be greater than or equal to 1";
+  }
+
+  // Validate latitude and longitude
+  if (minLat && (minLat < -90 || minLat > 90)) {
+    errors.minLat = "Minimum latitude is invalid";
+  }
+  if (maxLat && (maxLat < -90 || maxLat > 90)) {
+    errors.maxLat = "Maximum latitude is invalid";
+  }
+  if (minLng && (minLng < -180 || minLng > 180)) {
+    errors.minLng = "Minimum longitude is invalid";
+  }
+  if (maxLng && (maxLng < -180 || maxLng > 180)) {
+    errors.maxLng = "Maximum longitude is invalid";
+  }
+
+  // Validate prices
+  if (minPrice && minPrice < 0) {
+    errors.minPrice = "Minimum price must be greater than or equal to 0";
+  }
+  if (maxPrice && maxPrice < 0) {
+    errors.maxPrice = "Maximum price must be greater than or equal to 0";
+  }
+
+  // If there are errors, return 400 Bad Request with error details
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      message: "Bad Request",
+      errors,
+    });
+  }
+
+  const spots = await Spot.findAll({
     where: {
-        lat: { [Op.between]: [minLat || -90, maxLat || 90] },
-        lng: { [Op.between]: [minLng || -180, maxLng || 180] },
-        price: { [Op.between]: [minPrice || 0, maxPrice || Number.MAX_SAFE_INTEGER] }
+      lat: { [Op.between]: [minLat || -90, maxLat || 90] },
+      lng: { [Op.between]: [minLng || -180, maxLng || 180] },
+      price: {
+        [Op.between]: [minPrice || 0, maxPrice || Number.MAX_SAFE_INTEGER],
+      },
     },
     limit: size,
     offset: (page - 1) * size,
     include: [
-        {
-            model: SpotImage,
-            attributes: ['url', 'preview']
-        },
-        {
-            model: Review,
-            attributes: ['stars'],
-            required: false
-        }
-    ]
-});
-let spotsList = spots.map(spot => spot.toJSON());
+      {
+        model: SpotImage,
+        attributes: ["url", "preview"],
+      },
+      {
+        model: Review,
+        attributes: ["stars"],
+        required: false,
+      },
+    ],
+  });
 
-// Process each spot to include avgRating and previewImage
-spotsList.forEach(spot => {
+  let spotsList = spots.map((spot) => spot.toJSON());
+
+  // Process each spot to include avgRating and previewImage
+  spotsList.forEach((spot) => {
     // Calculate average rating
     let totalStars = 0;
     let reviewCount = 0;
-    spot.Reviews.forEach(review => {
-        totalStars += review.stars;
-        reviewCount++;
+    spot.Review.forEach((review) => {
+      totalStars += review.stars;
+      reviewCount++;
     });
 
     if (reviewCount > 0) {
-        spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));
+      spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));
     } else {
-        spot.avgRating = null;
+      spot.avgRating = null;
     }
     delete spot.Reviews; // Remove Reviews after processing avgRating
 
     // Calculate preview image
-    spot.SpotImages.forEach(image => {
-        if (image.preview === true) {
-            spot.previewImage = image.url;
-        }
+    spot.SpotImage.forEach((image) => {
+      if (image.preview === true) {
+        spot.previewImage = image.url;
+      }
     });
     if (!spot.previewImage) {
-        spot.previewImage = 'No preview image available';
+      spot.previewImage = "No preview image available";
     }
-    delete spot.SpotImages; // Remove SpotImages after processing previewImage
+    delete spot.SpotImage; // Remove SpotImages after processing previewImage
 
     return spot;
+  });
+
+  res.json({ Spots: spotsList, page, size });
 });
 
-res.json({ Spots: spotsList, page, size });
-});
+
+// // GET all spots filtered with query parameters
+// router.get('/', async (req, res) => {
+//   let { page, size, minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query;
+
+//   // Convert query parameters to proper types
+//   page = parseInt(page) || 1;  // Default to 1 if invalid or not provided
+//   size = parseInt(size) || 20;  // Default to 20 if invalid or not provided
+//   minLat = minLat !== undefined ? parseFloat(minLat) : undefined;
+//   maxLat = maxLat !== undefined ? parseFloat(maxLat) : undefined;
+//   minLng = minLng !== undefined ? parseFloat(minLng) : undefined;
+//   maxLng = maxLng !== undefined ? parseFloat(maxLng) : undefined;
+//   minPrice = minPrice !== undefined ? parseFloat(minPrice) : undefined;
+//   maxPrice = maxPrice !== undefined ? parseFloat(maxPrice) : undefined
+
+//   // Validation
+//   const errors = {};
+//   if (isNaN(page) || page < 1) errors.page = "Page must be greater than or equal to 1";
+//   if (isNaN(size) || size < 1 || size > 20) errors.size = "Size must be between 1 and 20";
+//   if (minLat !== undefined && (isNaN(minLat) || minLat < -90 || minLat > 90)) errors.minLat = "Minimum latitude is invalid";
+//   if (maxLat !== undefined && (isNaN(maxLat) || maxLat < -90 || maxLat > 90)) errors.maxLat = "Maximum latitude is invalid";
+//   if (minLng !== undefined && (isNaN(minLng) || minLng < -180 || minLng > 180)) errors.minLng = "Minimum longitude is invalid";
+//   if (maxLng !== undefined && (isNaN(maxLng) || maxLng < -180 || maxLng > 180)) errors.maxLng = "Maximum longitude is invalid";
+//   if (minPrice !== undefined && (isNaN(minPrice) || minPrice < 0)) errors.minPrice = "Minimum price must be greater than or equal to 0";
+//   if (maxPrice !== undefined && (isNaN(maxPrice) || maxPrice < 0)) errors.maxPrice = "Maximum price must be greater than or equal to 0";
+//    // If there are errors, respond with a 400 status
+//    if (Object.keys(errors).length > 0) {
+//     return res.status(400).json({
+//         message: "Bad Request",
+//         errors
+//     });
+// }
+
+// const spots = await Spot.findAll({
+//     where: {
+//         lat: { [Op.between]: [minLat || -90, maxLat || 90] },
+//         lng: { [Op.between]: [minLng || -180, maxLng || 180] },
+//         price: { [Op.between]: [minPrice || 0, maxPrice || Number.MAX_SAFE_INTEGER] }
+//     },
+//     limit: size,
+//     offset: (page - 1) * size,
+//     include: [
+//         {
+//             model: SpotImage,
+//             attributes: ['url', 'preview']
+//         },
+//         {
+//             model: Review,
+//             attributes: ['stars'],
+//             required: false
+//         }
+//     ]
+// });
+// let spotsList = spots.map(spot => spot.toJSON());
+
+// // Process each spot to include avgRating and previewImage
+// spotsList.forEach(spot => {
+//     // Calculate average rating
+//     let totalStars = 0;
+//     let reviewCount = 0;
+//     spot.Reviews.forEach(review => {
+//         totalStars += review.stars;
+//         reviewCount++;
+//     });
+
+//     if (reviewCount > 0) {
+//         spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));
+//     } else {
+//         spot.avgRating = null;
+//     }
+//     delete spot.Reviews; // Remove Reviews after processing avgRating
+
+//     // Calculate preview image
+//     spot.SpotImages.forEach(image => {
+//         if (image.preview === true) {
+//             spot.previewImage = image.url;
+//         }
+//     });
+//     if (!spot.previewImage) {
+//         spot.previewImage = 'No preview image available';
+//     }
+//     delete spot.SpotImages; // Remove SpotImages after processing previewImage
+
+//     return spot;
+// });
+
+// res.json({ Spots: spotsList, page, size });
+// });
 
 
 //GET Spot
@@ -275,78 +474,94 @@ router.post('/', requireAuth, async (req, res) => {
 //   }
 // );
 
+// get all spots owned by the current user
 
+router.get("/current", requireAuth, async (req, res, next) => {
+  // get current user from restoreUser middleware
 
-//GET all SPots owned by the Current User
-router.get('/current', requireAuth, async (req, res) => {
   const userId = req.user.id;
-  const spots = await Spot.findAll({
-      where: {ownerId: userId},
-      include: [
-          {
-              model: Review,
-              attributes: ['stars'],
-              required: false
-          },
-          {
-              model: SpotImage,
-              attributes: ['url', 'preview'],
-              required: false
-          },
-      ],
-  })
 
-  let spotsList = []
+  try {
+    const currentUserSpots = await Spot.findAll({
+      where: { ownerId: userId },
+    });
 
-  spots.forEach((spot) => {
-      spotsList.push(spot.toJSON())
-  })
+    res.json(currentUserSpots);
+  } catch (error) {
+    next(error);
+  }
+});
 
-  const formattedSpots= spotsList.map((spot) => {
-      spot.SpotImages.forEach((image) => {
-          if(image.preview === true){
-              spot.previewImage = image.url
-          }
-      })
-      if(!spot.previewImage){
-          spot.previewImage = 'No preview image available'
-      }
-      delete spot.SpotImages
+// //GET all SPots owned by the Current User
+// router.get('/current', requireAuth, async (req, res) => {
+//   const userId = req.user.id;
+//   const spots = await Spot.findAll({
+//       where: {ownerId: userId},
+//       include: [
+//           {
+//               model: Review,
+//               attributes: ['stars'],
+//               required: false
+//           },
+//           {
+//               model: SpotImage,
+//               attributes: ['url', 'preview'],
+//               required: false
+//           },
+//       ],
+//   })
 
-      let totalStars = 0;
-      let reviewCount = 0;
-      spot.Reviews.forEach((review) => {
-          totalStars += review.stars;
-          reviewCount++;
-      })
+//   let spotsList = []
 
-      if(reviewCount > 0){
-          spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));;
-      } else {
-          spot.avgRating = null
-      }
-      delete spot.Reviews
-      return {
-          id: spot.id,
-          ownerId: spot.ownerId,
-          address: spot.address,
-          city: spot.city,
-          state: spot.state,
-          country: spot.country,
-          lat: spot.lat,
-          lng: spot.lng,
-          name: spot.name,
-          description: spot.description,
-          price: spot.price,
-          createdAt: spot.createdAt,
-          updatedAt: spot.updatedAt,
-          avgRating: spot.avgRating,
-          previewImage: spot.previewImage
-      };
-  })
-  res.json({Spots: formattedSpots})
+//   spots.forEach((spot) => {
+//       spotsList.push(spot.toJSON())
+//   })
 
-})
+//   const formattedSpots= spotsList.map((spot) => {
+//       spot.SpotImages.forEach((image) => {
+//           if(image.preview === true){
+//               spot.previewImage = image.url
+//           }
+//       })
+//       if(!spot.previewImage){
+//           spot.previewImage = 'No preview image available'
+//       }
+//       delete spot.SpotImages
+
+//       let totalStars = 0;
+//       let reviewCount = 0;
+//       spot.Reviews.forEach((review) => {
+//           totalStars += review.stars;
+//           reviewCount++;
+//       })
+
+//       if(reviewCount > 0){
+//           spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));;
+//       } else {
+//           spot.avgRating = null
+//       }
+//       delete spot.Reviews
+//       return {
+//           id: spot.id,
+//           ownerId: spot.ownerId,
+//           address: spot.address,
+//           city: spot.city,
+//           state: spot.state,
+//           country: spot.country,
+//           lat: spot.lat,
+//           lng: spot.lng,
+//           name: spot.name,
+//           description: spot.description,
+//           price: spot.price,
+//           createdAt: spot.createdAt,
+//           updatedAt: spot.updatedAt,
+//           avgRating: spot.avgRating,
+//           previewImage: spot.previewImage
+//       };
+//   })
+//   res.json({Spots: formattedSpots})
+
+// })
 
 // //details of a spot from an id
 // router.get('/:spotId', async (req, res) => {
@@ -370,68 +585,152 @@ router.get('/current', requireAuth, async (req, res) => {
 //   }
 // });
 
-  // Get Spot by ID and details (Owner, SpotImage, Review)
-router.get('/:id', async (req, res) => {
-  const spotId = req.params.id;
+//   // Get Spot by ID and details (Owner, SpotImage, Review)
+// router.get('/:id', async (req, res) => {
+//   const spotId = req.params.id;
+
+//   try {
+//     // Find spot by ID
+//     const spot = await Spot.findByPk(spotId, {
+//       include: [
+//         // the owner (User) data
+//         {
+//           model: 'User',
+//           as: 'Owner',
+//           attributes: ['id', 'firstName', 'lastName'],
+//         },
+//         // spot images
+//         {
+//           model: 'SpotImage',
+//           attributes: ['id', 'url', 'preview'],
+//         },
+//       ],
+//     });
+
+//     if (!spot) {
+//       return res.status(404).json({ message: 'Spot not found', statusCode: 404 });
+//     }
+
+//     // Get # of reviews and avg rating
+//     const reviews = await Review.findAll({
+//       where: { spotId: spot.id },
+//       attributes: ['stars'],
+//     });
+
+//     const numReviews = reviews.length;
+//     const avgStarRating = reviews.length
+//       ? reviews.reduce((sum, review) => sum + review.stars, 0) / numReviews
+//       : 0;
+
+//     // response object
+//     const spotDetails = {
+//       id: spot.id,
+//       ownerId: spot.ownerId,
+//       address: spot.address,
+//       city: spot.city,
+//       state: spot.state,
+//       country: spot.country,
+//       lat: spot.lat,
+//       lng: spot.lng,
+//       name: spot.name,
+//       description: spot.description,
+//       price: spot.price,
+//       createdAt: spot.createdAt,
+//       updatedAt: spot.updatedAt,
+//       numReviews: numReviews,
+//       avgStarRating: avgStarRating,
+//       SpotImage: spot.SpotImage,
+//       Owner: spot.Owner,
+//     };
+
+//     res.json(spotDetails);
+//   } catch (error) {
+//     console.error('Error fetching spot details:', error);
+//     res.status(500).json({ message: 'Internal server error', statusCode: 500 });
+//   }
+// });
+
+// get details of a Spot from an id
+router.get("/:spotId", async (req, res, next) => {
+  const spotId = req.params.spotId;
+  let avgStarRating;
+  const numReviews = await Review.count({
+    where: { spotId },
+  });
+
+  const reviews = await Review.findAll({
+    where: { spotId },
+    attributes: ["stars"],
+  });
+
+  if (reviews.length > 0) {
+    const totalStars = reviews.reduce((acc, review) => acc + review.stars, 0);
+    avgStarRating = totalStars / numReviews;
+  } else {
+    // Handle case where there are no reviews
+    avgStarRating = 0;
+  }
 
   try {
-    // Find spot by ID
-    const spot = await Spot.findByPk(spotId, {
+    const preSpot = await Spot.findByPk(spotId, {
+      attributes: [
+        "id",
+        "ownerId",
+        "address",
+        "city",
+        "state",
+        "country",
+        "lat",
+        "lng",
+        "name",
+        "description",
+        "price",
+      ],
       include: [
-        // the owner (User) data
         {
-          model: 'User',
-          as: 'Owner',
-          attributes: ['id', 'firstName', 'lastName'],
+          model: User,
+          attributes: ["id", "firstName", "lastName"], // only has id, firstName, lastName
+          as: "Owner",
         },
-        // spot images
         {
-          model: 'SpotImage',
-          attributes: ['id', 'url', 'preview'],
+          model: SpotImage,
+          attributes: ["id", "url", "preview"],
+          as: "SpotImage",
         },
       ],
     });
 
-    if (!spot) {
-      return res.status(404).json({ message: 'Spot not found', statusCode: 404 });
+    // preSpot.avgRating = avgStarRating;
+
+    if (!preSpot) {
+      //spot not found
+      const err = new Error("Spot couldn't be found");
+      err.status = 404;
+      return next(err);
     }
-
-    // Get # of reviews and avg rating
-    const reviews = await Review.findAll({
-      where: { spotId: spot.id },
-      attributes: ['stars'],
-    });
-
-    const numReviews = reviews.length;
-    const avgStarRating = reviews.length
-      ? reviews.reduce((sum, review) => sum + review.stars, 0) / numReviews
-      : 0;
-
-    // response object
-    const spotDetails = {
-      id: spot.id,
-      ownerId: spot.ownerId,
-      address: spot.address,
-      city: spot.city,
-      state: spot.state,
-      country: spot.country,
-      lat: spot.lat,
-      lng: spot.lng,
-      name: spot.name,
-      description: spot.description,
-      price: spot.price,
-      createdAt: spot.createdAt,
-      updatedAt: spot.updatedAt,
-      numReviews: numReviews,
-      avgStarRating: avgStarRating,
-      SpotImage: spot.SpotImage,
-      Owner: spot.Owner,
+    const spotResult = {
+      id: preSpot.id,
+      ownerId: preSpot.ownerId,
+      address: preSpot.address,
+      city: preSpot.city,
+      state: preSpot.state,
+      country: preSpot.country,
+      lat: preSpot.lat,
+      lng: preSpot.lng,
+      name: preSpot.name,
+      description: preSpot.description,
+      price: preSpot.price,
+      createdAt: preSpot.createdAt,
+      updatedAt: preSpot.updatedAt,
+      numReviews,
+      avgStarRating,
+      SpotImages: preSpot.SpotImages,
+      Owner: preSpot.Owner,
     };
 
-    res.json(spotDetails);
-  } catch (error) {
-    console.error('Error fetching spot details:', error);
-    res.status(500).json({ message: 'Internal server error', statusCode: 500 });
+    res.json(spotResult);
+  } catch (e) {
+    next(e);
   }
 });
 
@@ -611,45 +910,29 @@ router.get('/:spotId/reviews', async (req, res, next) => {
 //   }
 // });
 
-// PUT /spots/:id - Update a spot
-router.put('/:id', requireAuth, async (req, res) => {
-  const spotId = req.params.id;
-  const userId = req.user.id; // `req.user.id` is set after auth
-  const { address, city, state, country, lat, lng, name, description, price } = req.body;
+// Edit a spot
+// /api/spots/:spotId
+// Also requires proper authorization in addition to authentication
+router.put("/:spotId", requireAuth, validateSpot, async (req, res, next) => {
+  const spotId = req.params.spotId;
+  const { address, city, state, country, lat, lng, name, description, price } =
+    req.body;
+  const ownerId = req.user.id;
+
+  // 400 Status for body errors
 
   try {
-    // find spot by ID
     const spot = await Spot.findByPk(spotId);
-
     if (!spot) {
-      return res.status(404).json({ message: 'Spot not found', statusCode: 404 });
+      return res.status(404).json({ message: "Spot couldn't be found" });
     }
 
-    // if the authenticated user is the owner of spot
-    if (spot.ownerId !== userId) {
-      return res.status(403).json({ message: 'Forbidden - You are not the owner of this spot', statusCode: 403 });
-    }
-
-    // validate the req body
-    if (!address || !city || !state || !country || !lat || !lng || !name || !description || !price) {
-      return res.status(400).json({
-        message: 'Validation error - Missing required fields',
-        statusCode: 400,
-        errors: {
-          address: !address ? 'Address is required' : undefined,
-          city: !city ? 'City is required' : undefined,
-          state: !state ? 'State is required' : undefined,
-          country: !country ? 'Country is required' : undefined,
-          lat: !lat ? 'Latitude is required' : undefined,
-          lng: !lng ? 'Longitude is required' : undefined,
-          name: !name ? 'Name is required' : undefined,
-          description: !description ? 'Description is required' : undefined,
-          price: !price ? 'Price is required' : undefined,
-        },
+    if (spot.ownerId !== ownerId) {
+      return res.status(403).json({
+        message: "Forbidden",
       });
     }
 
-    // update spot with new data
     await spot.update({
       address,
       city,
@@ -661,28 +944,86 @@ router.put('/:id', requireAuth, async (req, res) => {
       description,
       price,
     });
+    await spot.save();
 
-    // return updated spot details
-    return res.json({
-      id: spot.id,
-      ownerId: spot.ownerId,
-      address: spot.address,
-      city: spot.city,
-      state: spot.state,
-      country: spot.country,
-      lat: spot.lat,
-      lng: spot.lng,
-      name: spot.name,
-      description: spot.description,
-      price: spot.price,
-      createdAt: spot.createdAt,
-      updatedAt: spot.updatedAt,
-    });
+    res.json(spot);
   } catch (error) {
-    console.error('Error updating spot:', error);
-    res.status(500).json({ message: 'Internal server error', statusCode: 500 });
+    next(error);
   }
 });
+
+// // PUT /spots/:id - Update a spot
+// router.put('/:id', requireAuth, async (req, res) => {
+//   const spotId = req.params.id;
+//   const userId = req.user.id; // `req.user.id` is set after auth
+//   const { address, city, state, country, lat, lng, name, description, price } = req.body;
+
+//   try {
+//     // find spot by ID
+//     const spot = await Spot.findByPk(spotId);
+
+//     if (!spot) {
+//       return res.status(404).json({ message: 'Spot not found', statusCode: 404 });
+//     }
+
+//     // if the authenticated user is the owner of spot
+//     if (spot.ownerId !== userId) {
+//       return res.status(403).json({ message: 'Forbidden - You are not the owner of this spot', statusCode: 403 });
+//     }
+
+//     // validate the req body
+//     if (!address || !city || !state || !country || !lat || !lng || !name || !description || !price) {
+//       return res.status(400).json({
+//         message: 'Validation error - Missing required fields',
+//         statusCode: 400,
+//         errors: {
+//           address: !address ? 'Address is required' : undefined,
+//           city: !city ? 'City is required' : undefined,
+//           state: !state ? 'State is required' : undefined,
+//           country: !country ? 'Country is required' : undefined,
+//           lat: !lat ? 'Latitude is required' : undefined,
+//           lng: !lng ? 'Longitude is required' : undefined,
+//           name: !name ? 'Name is required' : undefined,
+//           description: !description ? 'Description is required' : undefined,
+//           price: !price ? 'Price is required' : undefined,
+//         },
+//       });
+//     }
+
+//     // update spot with new data
+//     await spot.update({
+//       address,
+//       city,
+//       state,
+//       country,
+//       lat,
+//       lng,
+//       name,
+//       description,
+//       price,
+//     });
+
+//     // return updated spot details
+//     return res.json({
+//       id: spot.id,
+//       ownerId: spot.ownerId,
+//       address: spot.address,
+//       city: spot.city,
+//       state: spot.state,
+//       country: spot.country,
+//       lat: spot.lat,
+//       lng: spot.lng,
+//       name: spot.name,
+//       description: spot.description,
+//       price: spot.price,
+//       createdAt: spot.createdAt,
+//       updatedAt: spot.updatedAt,
+//     });
+//   } catch (error) {
+//     console.error('Error updating spot:', error);
+//     res.status(500).json({ message: 'Internal server error', statusCode: 500 });
+//   }
+// });
 
 //add image
 router.post('/:spotId/images', requireAuth, async (req, res) => {
@@ -722,68 +1063,116 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
 
 })
 
+// Create a review for a spot based on spot id
+// /api/spots/:spotId/reviews
+router.post("/:spotId/reviews", requireAuth, validateReview, async (req, res, next) => {
+    const spotId = req.params.spotId;
+    const { review, stars } = req.body;
+    // get the userId to add the review. Comes from restoreUser middleware
+    const userId = req.user.id;
 
-// POST /spots/:id/reviews - Create a new review for a spot
-router.post('/:id/reviews', requireAuth, async (req, res) => {
-  const userId = req.user.id;
-  const spotId = req.params.id;
-  const { review, stars } = req.body;
+    // 400 Status for body errors
 
-  // Validate req body
-  if (!review || typeof review !== 'string' || !stars || typeof stars !== 'number' || stars < 1 || stars > 5) {
-    return res.status(400).json({
-      message: 'Validation error: Review and stars are required. Stars must be between 1 and 5.',
-      statusCode: 400,
-    });
-  }
+    try {
+      // check if spot exists
+      const spot = await Spot.findByPk(spotId);
 
-  try {
-    // Check if spot exists
-    const spot = await Spot.findByPk(spotId);
-    if (!spot) {
-      return res.status(404).json({
-        message: 'Spot not found',
-        statusCode: 404,
+      if (!spot) {
+        return res.status(404).json({ message: "Spot couldn't be found" });
+      }
+
+      // user can not review their own spot
+      if (spot.ownerId === userId) {
+        return res
+          .status(403)
+          .json({ message: "Forbidden: Can not review your own spot" });
+      }
+
+      // check if review already exists
+      const existingReview = await Review.findOne({
+        where: { spotId, userId: userId },
       });
-    }
+      if (existingReview) {
+        return res
+          .status(500)
+          .json({ message: "User already has a review for this spot" });
+      }
 
-    // Check if user has already made a review for this spot
-    const existingReview = await Review.findOne({
-      where: { userId, spotId },
-    });
-    if (existingReview) {
-      return res.status(500).json({
-        message: 'User already has a review for this spot',
-        // statusCode: 403,
+      const newReview = await Review.create({
+        spotId,
+        userId: userId,
+        review,
+        stars,
       });
+      res.status(201).json(newReview);
+    } catch (error) {
+      next(error);
     }
-
-    // Create new review
-    const newReview = await Review.create({
-      userId,
-      spotId,
-      review,
-      stars,
-    });
-
-    // Return the new review data
-    return res.status(201).json({
-      id: newReview.id,
-      userId: newReview.userId,
-      spotId: newReview.spotId,
-      review: newReview.review,
-      stars: newReview.stars,
-      createdAt: newReview.createdAt,
-      updatedAt: newReview.updatedAt,
-    });
-  } catch (error) {
-    console.error('Error creating review:', error);
-    res.status(500).json({
-      message: 'Internal server error',
-      statusCode: 500,
-    });
   }
-});
+);
+
+
+// // POST /spots/:id/reviews - Create a new review for a spot
+// router.post('/:id/reviews', requireAuth, async (req, res) => {
+//   const userId = req.user.id;
+//   const spotId = req.params.id;
+//   const { review, stars } = req.body;
+
+//   // Validate req body
+//   if (!review || typeof review !== 'string' || !stars || typeof stars !== 'number' || stars < 1 || stars > 5) {
+//     return res.status(400).json({
+//       message: 'Validation error: Review and stars are required. Stars must be between 1 and 5.',
+//       statusCode: 400,
+//     });
+//   }
+
+//   try {
+//     // Check if spot exists
+//     const spot = await Spot.findByPk(spotId);
+//     if (!spot) {
+//       return res.status(404).json({
+//         message: 'Spot not found',
+//         statusCode: 404,
+//       });
+//     }
+
+//     // Check if user has already made a review for this spot
+//     const existingReview = await Review.findOne({
+//       where: { userId, spotId },
+//     });
+//     if (existingReview) {
+//       return res.status(500).json({
+//         message: 'User already has a review for this spot',
+//         // statusCode: 403,
+//       });
+//     }
+
+//     // Create new review
+//     const newReview = await Review.create({
+//       userId,
+//       spotId,
+//       review,
+//       stars,
+//     });
+
+//     // Return the new review data
+//     return res.status(201).json({
+//       id: newReview.id,
+//       userId: newReview.userId,
+//       spotId: newReview.spotId,
+//       review: newReview.review,
+//       stars: newReview.stars,
+//       createdAt: newReview.createdAt,
+//       updatedAt: newReview.updatedAt,
+//     });
+//   } catch (error) {
+//     console.error('Error creating review:', error);
+//     res.status(500).json({
+//       message: 'Internal server error',
+//       statusCode: 500,
+//     });
+//   }
+// });
 
 // DELETE /spots/:id - Delete a spot
 router.delete('/:id', requireAuth, async (req, res) => {
