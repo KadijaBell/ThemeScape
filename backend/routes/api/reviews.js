@@ -1,98 +1,151 @@
 const express = require("express");
 const { Spot, SpotImage, User, Review, Booking, ReviewImage} = require("../../db/models");
 const { requireAuth } = require("../../utils/auth");
+const { check } = require("express-validator");
+const { handleValidationErrors } = require("../../utils/validation");
 const router = express.Router();
 
+// Check validation for reviews
+const validateReview = [
+  check("review")
+    .exists({ checkFalsy: true })
+    .withMessage("Review text is required"),
+  check("stars")
+    .exists({ checkFalsy: true })
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Stars must be an integer from 1 to 5"),
+  handleValidationErrors,
+];
 
-    // GET /reviews/current - Get all reviews by the current authenticated user
-    router.get('/current', requireAuth, async (req, res) => {
-      const userId = req.user.id;
-
-      try {
-        // Find reviews by the current user, including data for User, Spot, and ReviewImage
-        const userReviews = await Review.findAll({
-          where: { userId },
-          include: [
-            {
-              model: User,
-              attributes: ['id', 'firstName', 'lastName'],
-            },
-            {
-              model: Spot,
-              attributes: [
-                'id', 'ownerId', 'address', 'city', 'state', 'country', 'lat', 'lng', 'name', 'price'
-              ],
-              include: [
-                {
-                  model: SpotImage,
-                  as: 'previewImage',
-                  attributes: ['url'],
-                  where: { preview: true },
-                  required: false // if spot doesn't have a prev image
-                }
-              ]
-            },
-            {
-              model: ReviewImage,
-              attributes: ['id', 'url'],
-            },
+// Get the reviews of the current user
+// /api/reviews/current ~ not /api/reviews/:userId
+router.get("/current", requireAuth, async (req, res, next) => {
+  const uid = req.user.id;
+  try {
+    const currentUserReviews = await Review.findAll({
+      where: { userId: uid },
+      include: [
+        {
+          model: User,
+          attributes: ["id", "firstName", "lastName"],
+        },
+        {
+          model: Spot,
+          attributes: [
+            "id",
+            "ownerId",
+            "address",
+            "city",
+            "state",
+            "country",
+            "lat",
+            "lng",
+            "name",
+            "price",
+            "previewImage",
           ],
-        });
-
-
-        if (!userReviews.length) {
-          return res.status(200).json({ Review: [] });
-        }
-
-        // Process the reviews and send the response
-        return res.status(200).json({
-          Review: userReviews.map(review => {
-            // Extract the preview image if it exists
-            const previewImage = review.Spot.SpotImage && review.Spot.SpotImage[0]
-              ? review.Spot.SpotImage[0].url
-              : null;
-
-            return {
-              id: review.id,
-              userId: review.userId,
-              spotId: review.spotId,
-              review: review.review,
-              stars: review.stars,
-              createdAt: review.createdAt,
-              updatedAt: review.updatedAt,
-              User: {
-                id: review.User.id,
-                firstName: review.User.firstName,
-                lastName: review.User.lastName,
-              },
-              Spot: {
-                id: review.Spot.id,
-                ownerId: review.Spot.ownerId,
-                address: review.Spot.address,
-                city: review.Spot.city,
-                state: review.Spot.state,
-                country: review.Spot.country,
-                lat: review.Spot.lat,
-                lng: review.Spot.lng,
-                name: review.Spot.name,
-                price: review.Spot.price,
-                previewImage: previewImage, // Set the preview image URL or null
-              },
-              ReviewImage: review.ReviewImage.map(image => ({
-                id: image.id,
-                url: image.url,
-              })),
-            };
-          }),
-        });
-      } catch (error) {
-        console.error('Error fetching reviews for the current user:', error);
-        return res.status(500).json({
-          message: 'Internal server error',
-          statusCode: 500,
-        });
-      }
+        },
+        {
+          model: ReviewImage,
+          attributes: ["id", "url"],
+        },
+      ],
     });
+    res.json(currentUserReviews);
+  } catch (error) {
+    next(error);
+  }
+});
+
+    // // GET /reviews/current - Get all reviews by the current authenticated user
+    // router.get('/current', requireAuth, async (req, res) => {
+    //   const userId = req.user.id;
+
+    //   try {
+    //     // Find reviews by the current user, including data for User, Spot, and ReviewImage
+    //     const userReviews = await Review.findAll({
+    //       where: { userId },
+    //       include: [
+    //         {
+    //           model: User,
+    //           attributes: ['id', 'firstName', 'lastName'],
+    //         },
+    //         {
+    //           model: Spot,
+    //           attributes: [
+    //             'id', 'ownerId', 'address', 'city', 'state', 'country', 'lat', 'lng', 'name', 'price'
+    //           ],
+    //           include: [
+    //             {
+    //               model: SpotImage,
+    //               as: 'previewImage',
+    //               attributes: ['url'],
+    //               where: { preview: true },
+    //               required: false // if spot doesn't have a prev image
+    //             }
+    //           ]
+    //         },
+    //         {
+    //           model: ReviewImage,
+    //           attributes: ['id', 'url'],
+    //         },
+    //       ],
+    //     });
+
+
+    //     if (!userReviews.length) {
+    //       return res.status(200).json({ Review: [] });
+    //     }
+
+    //     // Process the reviews and send the response
+    //     return res.status(200).json({
+    //       Review: userReviews.map(review => {
+    //         // Extract the preview image if it exists
+    //         const previewImage = review.Spot.SpotImage && review.Spot.SpotImage[0]
+    //           ? review.Spot.SpotImage[0].url
+    //           : null;
+
+    //         return {
+    //           id: review.id,
+    //           userId: review.userId,
+    //           spotId: review.spotId,
+    //           review: review.review,
+    //           stars: review.stars,
+    //           createdAt: review.createdAt,
+    //           updatedAt: review.updatedAt,
+    //           User: {
+    //             id: review.User.id,
+    //             firstName: review.User.firstName,
+    //             lastName: review.User.lastName,
+    //           },
+    //           Spot: {
+    //             id: review.Spot.id,
+    //             ownerId: review.Spot.ownerId,
+    //             address: review.Spot.address,
+    //             city: review.Spot.city,
+    //             state: review.Spot.state,
+    //             country: review.Spot.country,
+    //             lat: review.Spot.lat,
+    //             lng: review.Spot.lng,
+    //             name: review.Spot.name,
+    //             price: review.Spot.price,
+    //             previewImage: previewImage, // Set the preview image URL or null
+    //           },
+    //           ReviewImage: review.ReviewImage.map(image => ({
+    //             id: image.id,
+    //             url: image.url,
+    //           })),
+    //         };
+    //       }),
+    //     });
+    //   } catch (error) {
+    //     console.error('Error fetching reviews for the current user:', error);
+    //     return res.status(500).json({
+    //       message: 'Internal server error',
+    //       statusCode: 500,
+    //     });
+    //   }
+    // });
 
 
   // PUT /reviews/:reviewId - Update a review

@@ -1,7 +1,7 @@
 const express = require("express");
 const { Spot, SpotImage, User, Review, Booking, ReviewImage} = require("../../db/models");
 const { requireAuth } = require("../../utils/auth");
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 
 // delete a review image
@@ -13,7 +13,12 @@ router.delete("/:imageId", requireAuth, async (req, res) => {
     try {
 
         // get the image
-        const image = await ReviewImage.findByPk(imageId);
+        const image = await ReviewImage.findByPk(imageId, {
+          include: {
+            model: Review,
+            attributes: ["userId"],
+          },
+        });
         // if the image does not exist
         if (!image) {
             return res.status(404).json({ message: "Review Image couldn't be found" });
@@ -21,7 +26,7 @@ router.delete("/:imageId", requireAuth, async (req, res) => {
 
         // if the image belongs to the user
         if (image.userId !== userId) {
-            return res.status(403).json({ message: "You do not have permission to delete this image" });
+            return res.status(403).json({ message: "Forbidden: You do not own this review"  });
         }
 
         // delete the image
@@ -29,8 +34,7 @@ router.delete("/:imageId", requireAuth, async (req, res) => {
         return res.status(200).json({ message: "Successfully deleted" });
 
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 })
 

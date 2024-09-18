@@ -1,9 +1,12 @@
 const express = require('express');
 const { Spot, SpotImage, User, Review, Booking, ReviewImage} = require("../../db/models");
 const { requireAuth } = require("../../utils/auth");
-const { check, validationResult } = require('express-validator');
+const { check} = require('express-validator');
 const router = express.Router();
+const bookingsRouter = require("./bookings");
+const reviewsRouter = require("./reviews");
 const { Op } = require('sequelize');
+const { handleValidationErrors } = require("../../utils/validation");
 
 // GET all spots filtered with query parameters
 router.get('/', async (req, res) => {
@@ -443,83 +446,109 @@ router.get("/:spotId/bookings", requireAuth, async (req, res) => {
 
     // If the spot is not found, return a 404 error
     if (!spot) {
-      return res.status(404).json({ message: "Spot couldn't be found" });
+      const err = new Error("Spot couldn't be found");
+      err.status = 404;
+      return next(err);
     }
 
     // Determine if the current user is the owner of the spot
     const isOwner = spot.ownerId === currentUserId;
 
     // Set up the include for the Booking model
-    let include = [
-      {
-        model: Booking,
-        attributes: ["spotId","startDate", "endDate"],
-      },
-    ];
+    let bookings;
 
-    // If the user is the owner, add the User model to the include
+    // If the user is the owner, include all details
     if (isOwner) {
-      include = [
-        {
-          model: Booking,
-          include: [
-            { model: User, attributes: ["id", "firstName", "lastName"] },
-          ],
-          attributes: [
-            "id",
-            "spotId",
-            "userId",
-            "startDate",
-            "endDate",
-            "createdAt",
-            "updatedAt",
-          ],
-        },
-      ];
+      bookings = await Booking.findAll({
+        where: { spotId },
+        include: [
+          {
+            model: User,
+            attributes: ["id", "firstName", "lastName"], // only has id, firstName, lastName
+            as: "User",
+          },
+        ],
+      });
+
+      return res.json({ Booking: bookings });
     }
 
-    // Now, find the spot again with the proper include (based on ownership)
-    const spotWithBookings = await Spot.findByPk(spotId, { include });
-
-    // Map through the bookings and customize the response based on ownership
-    const bookings = spotWithBookings.Booking.map((booking) => {
-      if (isOwner) {
-        // Detailed booking info with user data for the owner
-        return {
-          User: {
-            id: booking.User.id,
-            firstName: booking.User.firstName,
-            lastName: booking.User.lastName,
-          },
-          id: booking.id,
-          spotId: booking.spotId,
-          userId: booking.userId,
-          startDate: booking.startDate,
-          endDate: booking.endDate,
-          createdAt: booking.createdAt,
-          updatedAt: booking.updatedAt,
-        };
-      } else {
-        // Basic booking info for non-owners
-        return {
-          spotId: booking.spotId,
-          startDate: booking.startDate,
-          endDate: booking.endDate,
-        };
-      }
+    // if the user is not the owner of the spot, only include basic details
+    bookings = await Booking.findAll({
+      where: { spotId },
+      attributes: ["spotId", "startDate", "endDate"],
     });
-
-    // Return the bookings in the correct format
-    return res.status(200).json({ Booking: bookings });
+    return res.json({ Booking: bookings });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
+// create a booking from a spot based on spot id
+router.post("/:spotId/bookings", requireAuth, validateBooking, async (req, res, next) => {
+    const ownerId = req.user.id;
+    const { startDate, endDate } = req.body;
+    const spotId = req.params.spotId;
+
+    try {
+      // check if the spot exists
+      const spot = await Spot.findByPk(spotId);
+      if (!spot) {
+        const err = new Error("Spot Image couldn't be found");
+        err.status = 404;
+        next(err);
+      }
+
+      // check if the user is the owner of the spot
+      if (spot.ownerId === ownerId) {
+        const err = new Error("Spot must not belong to user");
+        err.status = 403;
+        next(err);
+      }
+
+      // booking conflicts with any existing booking
+      const bookingConflicts = await Booking.findAll({
+        where: {
+          spotId,
+          [Op.or]: [
+            {
+              startDate: {
+                [Op.between]: [startDate, endDate],
+              },
+            },
+            {
+              endDate: {
+                [Op.between]: [startDate, endDate],
+              },
+            },
+          ],
+        },
+      });
+
+      if (bookingConflicts.length > 0) {
+        const err = new Error(
+          "Sorry, this spot is already booked for the specified dates"
+        );
+        err.status = 403;
+        return next(err);
+      }
+
+      const booking = await Booking.create({
+        spotId,
+        userId: ownerId,
+        startDate,
+        endDate,
+      });
+      res.status(201).json(booking);
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
 // GET /spots/:spotId/reviews - Get all reviews for a spot
-router.get('/:spotId/reviews', async (req, res) => {
-  const { spotId } = req.params;
+router.get('/:spotId/reviews', async (req, res, next) => {
+  const spotId  = req.params.spotId;
 
   try {
     // if the spot exists?
@@ -527,8 +556,7 @@ router.get('/:spotId/reviews', async (req, res) => {
 
     if (!spot) {
       return res.status(404).json({
-        message: "Spot couldn't be found",
-        statusCode: 404,
+        message: "Spot couldn't be found"
       });
     }
 
@@ -546,36 +574,42 @@ router.get('/:spotId/reviews', async (req, res) => {
         },
       ],
     });
-
-
-    return res.status(200).json({
-      Review: spotReviews.map(review => ({
-        id: review.id,
-        userId: review.userId,
-        spotId: review.spotId,
-        review: review.review,
-        stars: review.stars,
-        createdAt: review.createdAt,
-        updatedAt: review.updatedAt,
-        User: {
-          id: review.User.id,
-          firstName: review.User.firstName,
-          lastName: review.User.lastName,
-        },
-        ReviewImage: review.ReviewImage.map(image => ({
-          id: image.id,
-          url: image.url,
-        })),
-      })),
-    });
+    res.json(spotReviews);
   } catch (error) {
-    console.error('Error fetching reviews for the spot:', error);
-    return res.status(500).json({
-      message: 'Internal server error',
-      statusCode: 500,
-    });
+    next(error);
   }
 });
+
+
+
+//     return res.status(200).json({
+//       Review: spotReviews.map(review => ({
+//         id: review.id,
+//         userId: review.userId,
+//         spotId: review.spotId,
+//         review: review.review,
+//         stars: review.stars,
+//         createdAt: review.createdAt,
+//         updatedAt: review.updatedAt,
+//         User: {
+//           id: review.User.id,
+//           firstName: review.User.firstName,
+//           lastName: review.User.lastName,
+//         },
+//         ReviewImage: review.ReviewImage.map(image => ({
+//           id: image.id,
+//           url: image.url,
+//         })),
+//       })),
+//     });
+//   } catch (error) {
+//     console.error('Error fetching reviews for the spot:', error);
+//     return res.status(500).json({
+//       message: 'Internal server error',
+//       statusCode: 500,
+//     });
+//   }
+// });
 
 // PUT /spots/:id - Update a spot
 router.put('/:id', requireAuth, async (req, res) => {
