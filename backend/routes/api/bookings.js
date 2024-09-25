@@ -42,7 +42,7 @@ router.get("/current", requireAuth, async (req, res) => {
   try {
     const bookings = await Booking.findAll({
       where: { userId: userId },
-      include: [
+      include:
         {
           model: Spot,
           attributes: [
@@ -55,11 +55,11 @@ router.get("/current", requireAuth, async (req, res) => {
             "lat",
             "lng",
             "name",
-            "previewImage",
             "price",
+            "previewImage",
           ],
 
-        }]});
+        }});
 
     return res.json({ Bookings: bookings });
   } catch (error) {

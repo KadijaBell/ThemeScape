@@ -64,7 +64,8 @@ module.exports = (sequelize, DataTypes) => {
       references:{
         model: "Spots",
         key: "id"
-      }
+      },
+      onDelete: "CASCADE",
     },
     userId: {
       type: DataTypes.INTEGER,
@@ -72,7 +73,8 @@ module.exports = (sequelize, DataTypes) => {
       references:{
         model: "Users",
         key: "id"
-      }
+      },
+      onDelete: "CASCADE",
     },
     startDate: {
       type: DataTypes.DATE,
@@ -81,16 +83,6 @@ module.exports = (sequelize, DataTypes) => {
     endDate: {
       type: DataTypes.DATE,
       allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
     }
   }, {
     sequelize,

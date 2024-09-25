@@ -96,7 +96,8 @@ module.exports = (sequelize, DataTypes) => {
       references:{
         model: "Users",
         key: "id" ,
-     }
+     },
+     onDelete: "CASCADE",
     },
     address: {
       type: DataTypes.STRING,
@@ -134,16 +135,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       allowNull: false
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
+    avgRating: DataTypes.FLOAT,
+    previewImage: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Spot'

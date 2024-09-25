@@ -57,13 +57,17 @@ module.exports = {
         type: Sequelize.DECIMAL,
         allowNull: false
       },
+      avgRating: Sequelize.FLOAT,
+      previewImage: Sequelize.STRING,
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       }
     }, options);
   },

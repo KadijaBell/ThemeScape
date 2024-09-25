@@ -52,21 +52,12 @@ module.exports = (sequelize, DataTypes) => {
       references:{
         model: "Reviews",
         key: "id"
-      }
+      },
+      onDelete: "CASCADE",
     },
     url: {
       type: DataTypes.STRING,
       allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
     }
   }, {
     sequelize,

@@ -54,7 +54,8 @@ module.exports = (sequelize, DataTypes) => {
       references:{
         model: "Spots",
         key: "id"
-      }
+      },
+      onDelete: "CASCADE",
     },
     url: {
       type: DataTypes.STRING,
@@ -65,16 +66,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
   }, {
     sequelize,
     modelName: 'SpotImage'

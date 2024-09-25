@@ -69,64 +69,68 @@
 // };
 
 'use strict';
-const { Model } = require('sequelize');
+const { Model, Validator } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       // A user can have many spots, reviews, bookings
-      User.hasMany(models.Spot, { foreignKey: 'ownerId', onDelete: 'CASCADE', as: 'Owner'});
+      User.hasMany(models.Spot, { foreignKey: 'ownerId', onDelete: 'CASCADE'});
       User.hasMany(models.Review, { foreignKey: 'userId', onDelete: 'CASCADE' });
       User.hasMany(models.Booking, { foreignKey: 'userId', onDelete: 'CASCADE' });
     }
   }
 
-  User.init({
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notNull: { msg: 'First name is required' },
-        notEmpty: { msg: 'First name cannot be empty' }
-      }
+  User.init(
+    {
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          len: [4, 30],
+          isNotEmail(value) {
+            if (Validator.isEmail(value)) {
+              throw new Error("Cannot be an email.");
+            }
+          },
+        },
+      },
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false, // Ensure firstName is required
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false, // Ensure lastName is required
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          len: [3, 256],
+          isEmail: true,
+        },
+      },
+      hashedPassword: {
+        type: DataTypes.STRING.BINARY,
+        allowNull: false,
+        validate: {
+          len: [60, 60],
+        },
+      },
     },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notNull: { msg: 'Last name is required' },
-        notEmpty: { msg: 'Last name cannot be empty' }
-      }
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: { msg: 'Email must be a valid email address' },
-        notEmpty: { msg: 'Email cannot be empty' }
-      }
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      validate: {
-        notEmpty: { msg: 'Username cannot be empty' }
-      }
-    },
-    hashedPassword: {
-      type: DataTypes.STRING.BINARY,
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: 'Password cannot be empty' }
-      }
-    },
-
-  }, {
-    sequelize,
-    modelName: 'User'
-  });
+    {
+      sequelize,
+      modelName: "User",
+      defaultScope: {
+        attributes: {
+          exclude: ["hashedPassword", "createdAt", "updatedAt"], // Only exclude password and timestamps
+        },
+      },
+    }
+  );
 
   return User;
 };

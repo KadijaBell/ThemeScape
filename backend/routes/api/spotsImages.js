@@ -1,13 +1,11 @@
 const express = require("express");
 const { Spot, SpotImage, User, Review, Booking, ReviewImage} = require("../../db/models");
 const { requireAuth } = require("../../utils/auth");
-const { handleValidationErrors } = require("../../utils/validation");
-const { check } = require("express-validator");
 const router = express.Router();
 
 // delete a spot image
 router.delete('/:imageId', requireAuth, async (req, res, next) => {
-  const imageId = req.params;
+  const imageId = req.params.imageId;
   const userId = req.user.id;
 
   try {

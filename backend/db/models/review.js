@@ -70,7 +70,8 @@ module.exports = (sequelize, DataTypes) => {
       references:{
         model: "Spots",
         key: "id"
-      }
+      },
+      onDelete: "CASCADE",
     },
     userId: {
       type: DataTypes.INTEGER,
@@ -78,7 +79,8 @@ module.exports = (sequelize, DataTypes) => {
       references:{
         model: "Users",
         key: "id"
-      }
+      },
+      onDelete: "CASCADE",
     },
     review: {
       type: DataTypes.STRING,
@@ -87,16 +89,6 @@ module.exports = (sequelize, DataTypes) => {
     stars: {
       type: DataTypes.FLOAT,
       allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
     }
   }, {
     sequelize,

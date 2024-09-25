@@ -34,10 +34,8 @@ const validateLogin = [
             email: user.email,
             username: user.username,
           };
-          return res.json({
-            user: safeUser
-          });
-        } else return res.json({ user: null });
+          return res.status(200).json({ user: safeUser });
+        } else return res.status(200).json({ user: null });
       }
     );
 
@@ -52,8 +50,9 @@ router.post('/', validateLogin, async (req, res, next) => {
 
             username: credential,
             email: credential
-          }
-        }
+          },
+        },
+        attributes: ["id", "firstName", "lastName", "email", "username", "hashedPassword"],
       });
 
       if (!user || !bcrypt.compareSync(password, user.hashedPassword.toString())) {
@@ -65,14 +64,13 @@ router.post('/', validateLogin, async (req, res, next) => {
       }
 
       const safeUser = {
-        firstName: user.firstName,
-        lastName: user.lastName,
         id: user.id,
+        email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email,
         username: user.username,
       };
+
 
       await setTokenCookie(res, safeUser);
 
