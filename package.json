@@ -1,6 +1,7 @@
 {
   "name": "themescape-project",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "install": "npm --prefix backend install backend",
@@ -13,5 +14,4 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
 }

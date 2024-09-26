@@ -2,12 +2,11 @@ const config = require('./index');
 
 module.exports = {
   development: {
-    dialect: "sqlite",
     storage: config.dbFile,
+    dialect: "sqlite",
     seederStorage: "sequelize",
     logQueryParameters: true,
     typeValidation: true,
-    logging: console.log
   },
 
   production: {
@@ -22,7 +21,6 @@ module.exports = {
     },
     define: {
       schema: process.env.SCHEMA,
-      // underscored: true
     }
   }
 };

@@ -177,7 +177,7 @@ router.get("/", async (req, res) => {
     // Calculate average rating
     let totalStars = 0;
     let reviewCount = 0;
-    spot.Review.forEach((review) => {
+    spot.Reviews.forEach((review) => {
       totalStars += review.stars;
       reviewCount++;
     });
@@ -295,7 +295,7 @@ router.get("/:spotId", async (req, res, next) => {
       updatedAt: preSpot.updatedAt,
       numReviews,
       avgStarRating,
-      SpotImages: preSpot.SpotImages,
+      SpotImage: preSpot.SpotImage,
       Owner: preSpot.Owner,
     };
 
@@ -322,7 +322,7 @@ router.get("/:spotId/reviews", async (req, res, next) => {
           attributes: ["id", "firstName", "lastName"],
         },
         {
-          model: ReviewImages,
+          model: ReviewImage,
           attributes: ["id", "url"],
         },
       ],
@@ -685,7 +685,7 @@ router.get("/:spotId/bookings", requireAuth, async (req, res) => {
         ],
       });
 
-      return res.json({ Booking: bookings });
+      return res.json({ Bookings: bookings });
     }
 
     // if the user is not the owner of the spot, only include basic details

@@ -1,12 +1,12 @@
 // backend/routes/api/index.js
 const router = require("express").Router();
+const spotsRouter = require("./spots.js");
 const sessionRouter = require("./sessions.js");
 const usersRouter = require("./users.js");
-const bookingsRouter = require("./bookings.js");
 const reviewsRouter = require("./reviews.js");
-const reviewsImagesRouter = require("./reviewImages.js");
+const bookingsRouter = require("./bookings.js");
 const spotsImagesRouter = require("./spotsImages.js");
-const spotsRouter = require("./spots.js");
+const reviewsImagesRouter = require("./reviewImages.js");
 const { restoreUser } = require("../../utils/auth.js");
 // Connect restoreUser middleware to the API router
   // If current user session is valid, set req.user to the user in the database
@@ -16,10 +16,10 @@ const { restoreUser } = require("../../utils/auth.js");
   router.use('/session', sessionRouter);
   router.use('/users', usersRouter);
   router.use('/spots' , spotsRouter);
-  router.use('/spot-images' , spotsImagesRouter);
   router.use('/reviews' , reviewsRouter);
-  router.use('/review-images' , reviewsImagesRouter);
   router.use('/bookings' , bookingsRouter);
+  router.use('/spot-images' , spotsImagesRouter);
+  router.use('/review-images' , reviewsImagesRouter);
 
 router.post('/test', (req, res) => {
   res.json({ requestBody: req.body });

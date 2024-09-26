@@ -58,45 +58,10 @@ router.get("/current", requireAuth, async (req, res, next) => {
 });
 
 
-
-  // PUT /reviews/:reviewId - Update a review
-  router.put('/:reviewId', requireAuth, validateReview, async (req, res, next) => {
-    const reviewId = req.params.reviewId;
-    const uid = req.user.id;
-    const { review, stars } = req.body;
-
-    try {
-      // Fetch the existing review by ID
-      const existingReview = await Review.findByPk(reviewId);
-
-      // If review doesn't exist, return a 404 error
-      if (!existingReview) {
-        return res.status(404).json({
-          message: "Review couldn't be found"});
-      }
-
-      // Check if authenticated user is the owner of the review
-      if (existingReview.userId !== uid) {
-        return res.status(403).json({message: "Forbidden"});
-      }
-
-
-      await existingReview.update({ review, stars });
-      await existingReview.save();
-
-      res.status(200).json(existingReview);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-
-
 // POST /reviews/:id/images - Create new image for a review
 router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
-  const userId = req.user.id;
   const reviewId = req.params.reviewId;
+  const userId = req.user.id;
   const { url } = req.body;
 
   if (!url) {
@@ -155,6 +120,41 @@ const newImage = await ReviewImage.create({
 } catch (error) {
  next(error);
 }});
+
+  // PUT /reviews/:reviewId - Update a review
+  router.put('/:reviewId', requireAuth, validateReview, async (req, res, next) => {
+    const reviewId = req.params.reviewId;
+    const uid = req.user.id;
+    const { review, stars } = req.body;
+
+    try {
+      // Fetch the existing review by ID
+      const existingReview = await Review.findByPk(reviewId);
+
+      // If review doesn't exist, return a 404 error
+      if (!existingReview) {
+        return res.status(404).json({
+          message: "Review couldn't be found"});
+      }
+
+      // Check if authenticated user is the owner of the review
+      if (existingReview.userId !== uid) {
+        return res.status(403).json({message: "Forbidden"});
+      }
+
+
+      await existingReview.update({ review, stars });
+      await existingReview.save();
+
+      res.status(200).json(existingReview);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+
+
 
 //delete a review
 router.delete("/:reviewId", requireAuth, async (req, res, next) => {
