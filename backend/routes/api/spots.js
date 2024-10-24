@@ -148,62 +148,60 @@ router.get("/", async (req, res) => {
   }
 
   const spots = await Spot.findAll({
-    where: {
-      lat: { [Op.between]: [minLat || -90, maxLat || 90] },
-      lng: { [Op.between]: [minLng || -180, maxLng || 180] },
-      price: {
-        [Op.between]: [minPrice || 0, maxPrice || Number.MAX_SAFE_INTEGER],
-      },
-    },
-    limit: size,
-    offset: (page - 1) * size,
     include: [
       {
-        model: SpotImage,
-        attributes: ["url", "preview"],
+        model: Review,
+        attributes: ["stars"]
       },
       {
-        model: Review,
-        attributes: ["stars"],
-        required: false,
-      },
+        model: SpotImage,
+        attributes: ["url", "preview"]
+      }
     ],
+    attributes: ["id","name", "description", "price"],
+
   });
 
   let spotsList = spots.map((spot) => spot.toJSON());
 
   // Process each spot to include avgRating and previewImage
   spotsList.forEach((spot) => {
-    // Calculate average rating
+
     let totalStars = 0;
     let reviewCount = 0;
-    spot.Reviews.forEach((review) => {
-      totalStars += review.stars;
-      reviewCount++;
-    });
 
-    if (reviewCount > 0) {
-      spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));
+    if (spot.Reviews && spot.Reviews.length > 0) {
+      spot.Reviews.forEach((review) => {
+        totalStars += review.stars;
+        reviewCount++;
+      });
+
+      if (reviewCount > 0) {
+        spot.avgRating = parseFloat((totalStars / reviewCount).toFixed(1));
+      } else {
+        spot.avgRating = null;
+      }
     } else {
-      spot.avgRating = null;
+      spot.avgRating = null; // Handle case where there are no reviews
     }
-    delete spot.Reviews; // Remove Reviews after processing avgRating
 
-    // Calculate preview image
+    // Remove Reviews after processing avgRating to clean up the output
+    delete spot.Reviews;
+
+    // Handle previewImage
     spot.SpotImage.forEach((image) => {
       if (image.preview === true) {
         spot.previewImage = image.url;
       }
     });
+
     if (!spot.previewImage) {
       spot.previewImage = "No preview image available";
     }
-    delete spot.SpotImage; // Remove SpotImages after processing previewImage
-
-    return spot;
   });
 
-  res.json({ Spots: spotsList, page, size });
+  // Return the processed list of spots
+  res.json({ spots: spotsList });
 });
 // get all spots owned by the current user
 
