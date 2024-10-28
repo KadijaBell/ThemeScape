@@ -1,16 +1,51 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import LoginFormPage from './components/LoginFormPage'; // Import your LoginFormPage
+import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import LoginFormPage from './components/LoginFormPage/LoginFormPage';
+import SignUpFormPage from './components/SignUpForm/SignUpFormPage';
+import Navigation from './components/Navigation/Navigation';
+import * as sessionActions from './store/session';
 
-// Dummy HomePage component for the root route
-const HomePage = () => <h1>Welcome!</h1>;
+function Layout() {
+  const dispatch = useDispatch();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    dispatch(sessionActions.restoreUser()).then(() => {
+      setIsLoaded(true);
+    });
+  }, [dispatch]);
+
+  return (
+    <>
+      <Navigation />
+      {isLoaded && <Outlet />}
+    </>
+  );
+}
 
 const router = createBrowserRouter([
-  { path: '/', element: <HomePage /> },
-  { path: '/login', element: <LoginFormPage /> }
+  {
+    element: <Layout />,
+    children: [
+      {
+        path: '/',
+        element: <h1>Welcome!</h1>
+      },
+      {
+        path: '/login',
+        element: <LoginFormPage />
+      },
+      {
+        path: '/signup',
+        element: <SignUpFormPage />
+      }
+    ]
+  }
 ]);
 
-const App = () => {
+function App() {
   return <RouterProvider router={router} />;
-};
+}
 
 export default App;

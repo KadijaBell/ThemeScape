@@ -3,7 +3,7 @@ const express = require('express');
 require('express-async-errors');
 const morgan = require('morgan');
 const cors = require('cors');
-const csurf = require('csurf');
+const csrf = require('csurf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { ValidationError } = require('sequelize');
@@ -38,7 +38,7 @@ app.use(
 
 // Set the _csrf token and create req.csrfToken method
 app.use(
-  csurf({
+  csrf({
     cookie: {
       secure: isProduction,
       sameSite: isProduction && "Lax",
